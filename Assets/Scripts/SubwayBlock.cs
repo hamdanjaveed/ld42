@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SubwayBlock : MonoBehaviour {
+public class SubwayBlock : Block {
 	[SerializeField] private Sprite emptySprite;
 	[SerializeField] private Sprite horizontalSprite;
 	[SerializeField] private Sprite nodeDownSprite;

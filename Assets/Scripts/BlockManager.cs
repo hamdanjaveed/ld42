@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BlockManager : MonoBehaviour {
+public abstract class BlockManager : MonoBehaviour, IBlockHandler {
 	[SerializeField] protected BlockData data;
 	[SerializeField] private GameObject blockPrefab;
 
@@ -22,6 +22,11 @@ public class BlockManager : MonoBehaviour {
 				block.transform.parent = transform;
 				block.transform.position += topLeftOffset + Vector3.right * (cityBlockOffset * x) + Vector3.down * (cityBlockOffset * y);
 				block.name = "Block (" + x + ", " + y + ")";
+
+				Block blockBlock = block.GetComponent<Block>();
+				blockBlock.pos = new Coordinate(x, y);
+				blockBlock.blockHandler = this;
+
 				blocks[x][y] = block;
 			}
 		}
@@ -30,4 +35,7 @@ public class BlockManager : MonoBehaviour {
 	protected GameObject GetBlock(Coordinate c) {
 		return blocks[c.x][c.y];
 	}
+
+	public abstract void BlockClicked(GameObject go);
+	public abstract void BlockHovered(GameObject go);
 }

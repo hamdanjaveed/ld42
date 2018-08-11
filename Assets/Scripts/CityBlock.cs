@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CityBlock : MonoBehaviour {
+public class CityBlock : Block {
 	private SpriteRenderer spriteR;
 
 	public void Choose() {

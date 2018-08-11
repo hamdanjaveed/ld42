@@ -33,6 +33,14 @@ public class CityManager : BlockManager {
 		timeSinceLastBlockChosen += Time.deltaTime;
 	}
 
+	public override void BlockClicked(GameObject go) {
+		// Debug.Log("Block clicked in city: " + go.GetComponent<Block>().pos);
+	}
+
+	public override void BlockHovered(GameObject go) {
+		// Debug.Log("Block clicked in city: " + go.GetComponent<Block>().pos);
+	}
+
 	private void ChoosePairOfBlocks() {
 		int r = Random.Range(0, availableBlocks.Count - 1);
 		List<Coordinate> possible = availableBlocks.FindAll(coord => {
