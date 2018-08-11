@@ -81,78 +81,31 @@ public class Citizen : MonoBehaviour {
 		Coordinate workCoordinate = work.GetComponent<Block>().pos;
 		switch (state) {
 			case State.MOVING_IN:
-				transform.position = Vector3.MoveTowards(transform.position, home.transform.position, moveSpeed * 5 * Time.deltaTime);
-				Debug.DrawLine(transform.position, home.transform.position, Color.red);
-
-				if (Util.manhattanDistance(GetCoordinate(), homeCoordinate) < 1) {
+				WalkTo(homeCoordinate, home.transform.position, () => {
 					state = State.AT_HOME;
-
-					stateTimer = 0;
-					idleTimer = 2;
-					idlePos = GetRandomPosInCoordinate(homeCoordinate);
-				}
-
+					BeginIdlingIn(homeCoordinate);
+					ResetTimers();
+				}, 5.0f);
 				break;
 			case State.AT_HOME:
-				// for (int i = 0; i < 400; i++) {
-				// 	// home.GetComponent<Block>().pos
-				// 	Vector3 p = GetRandomPosInCoordinate(new Coordinate(4, 0));
-				// 	Debug.DrawLine(p + Vector3.up * 0.1f, p, Color.red);
-				// }
-
-				if (idleTimer > 2) {
-					transform.position = Vector3.MoveTowards(transform.position, idlePos, moveSpeed * 0.5f * Time.deltaTime);
-					Debug.DrawLine(transform.position, idlePos, Color.red);
-				}
-
-				if (Vector3.Distance(transform.position, idlePos) < 0.1f) {
-					idlePos = GetRandomPosInCoordinate(homeCoordinate);
-					idleTimer = 0;
-				}
-
+				IdleIn(homeCoordinate);
 				break;
 			case State.GOING_TO_WORK:
-				transform.position = Vector3.MoveTowards(transform.position, work.transform.position, moveSpeed * Time.deltaTime);
-				Debug.DrawLine(transform.position, work.transform.position, Color.red);
-
-				if (Util.manhattanDistance(GetCoordinate(), workCoordinate) < 1) {
+				WalkTo(workCoordinate, work.transform.position, () => {
 					state = State.AT_WORK;
-					stateTimer = 0;
-					idleTimer = 2;
-					idlePos = GetRandomPosInCoordinate(workCoordinate);
-				}
-
+					BeginIdlingIn(workCoordinate);
+					ResetTimers();
+				});
 				break;
 			case State.AT_WORK:
-				if (idleTimer > 2) {
-					transform.position = Vector3.MoveTowards(transform.position, idlePos, moveSpeed * 0.5f * Time.deltaTime);
-					Debug.DrawLine(transform.position, idlePos, Color.red);
-				}
-
-				if (Vector3.Distance(transform.position, idlePos) < 0.1f) {
-					idlePos = GetRandomPosInCoordinate(workCoordinate);
-					idleTimer = 0;
-				}
-
-				if (stateTimer > 10.0f) {
-					state = State.GOING_HOME;
-					stateTimer = 0;
-					idleTimer = 2;
-				}
-
+				IdleIn(workCoordinate);
 				break;
 			case State.GOING_HOME:
-				transform.position = Vector3.MoveTowards(transform.position, home.transform.position, moveSpeed * Time.deltaTime);
-				Debug.DrawLine(transform.position, home.transform.position, Color.red);
-
-				if (Util.manhattanDistance(GetCoordinate(), homeCoordinate) < 1) {
+				WalkTo(homeCoordinate, home.transform.position, () => {
 					state = State.AT_HOME;
-
-					stateTimer = 0;
-					idleTimer = 2;
-					idlePos = GetRandomPosInCoordinate(homeCoordinate);
-				}
-
+					ResetTimers();
+					BeginIdlingIn(homeCoordinate);
+				});
 				break;
 		}
 	}
@@ -160,16 +113,14 @@ public class Citizen : MonoBehaviour {
 	public void GoToWork() {
 		if (state == State.AT_HOME) {
 			state = State.GOING_TO_WORK;
-			stateTimer = 0;
-			idleTimer = 2;
+			ResetTimers();
 		}
 	}
 
 	public void GoHome() {
 		if (state == State.AT_WORK || state == State.GOING_TO_WORK) {
 			state = State.GOING_HOME;
-			stateTimer = 0;
-			idleTimer = 2;
+			ResetTimers();
 		}
 	}
 
@@ -187,6 +138,47 @@ public class Citizen : MonoBehaviour {
 
 	public override string ToString() {
 		return GetName();
+	}
+
+	private void ResetTimers() {
+		stateTimer = 0;
+		idleTimer = 2;
+	}
+
+	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
+		WalkTo(targetCoord, targetPos, (c1, c2) => Util.manhattanDistance(c1, c2) < 1, reachedTarget, moveSpeedModifier);
+	}
+
+	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Coordinate, Coordinate, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
+		transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * moveSpeedModifier * Time.deltaTime);
+		Debug.DrawLine(transform.position, targetPos, Color.red);
+
+		if (didReachTarget(GetCoordinate(), targetCoord)) reachedTarget();
+	}
+
+	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Vector3, Vector3, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
+		transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * moveSpeedModifier * Time.deltaTime);
+		Debug.DrawLine(transform.position, targetPos, Color.red);
+
+		if (didReachTarget(transform.position, targetPos)) reachedTarget();
+	}
+
+	private void BeginIdlingIn(Coordinate coord) {
+		idlePos = GetRandomPosInCoordinate(coord);
+		idleTimer = 0;
+	}
+
+	private void IdleIn(Coordinate coord) {
+		if (idleTimer > 2) {
+			WalkTo(coord, idlePos, (c1, c2) => Vector3.Distance(c1, c2) < 0.1f, () => {
+				BeginIdlingIn(coord);
+			}, 0.5f);
+		}
+
+		// for (int i = 0; i < 400; i++) {
+		// 	Vector3 p = GetRandomPosInCoordinate(coord);
+		// 	Debug.DrawLine(p + Vector3.up * 0.1f, p, Color.red);
+		// }
 	}
 
 	private Coordinate GetCoordinate() {
