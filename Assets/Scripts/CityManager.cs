@@ -8,7 +8,10 @@ public class CityManager : BlockManager {
 	[SerializeField] GameObject citizenPrefab;
 	[SerializeField] GameObject citizenContainer;
 
-	private const float blockChosenTimeThreshold = 30f; // Seconds between spawning a family
+	[SerializeField] Vector3 leftCitizenSpawnPos;
+	[SerializeField] Vector3 rightCitizenSpawnPos;
+
+	private const float blockChosenTimeThreshold = 3000f; // Seconds between spawning a family
 
 	private List<Coordinate> unoccupiedIndustrialBlocks;
 	private List<Coordinate> unoccupiedResidentialBlocks;
@@ -38,7 +41,7 @@ public class CityManager : BlockManager {
 		occupiedIndustrialBlocks = new List<Coordinate>();
 		occupiedResidentialBlocks = new List<Coordinate>();
 
-		timeSinceLastBlockChosen = blockChosenTimeThreshold - 2;
+		timeSinceLastBlockChosen = blockChosenTimeThreshold;
 	}
 
 	void Update() {
@@ -81,6 +84,7 @@ public class CityManager : BlockManager {
 		int familySize = Random.Range(1, 1);
 		for (int i = 0; i < familySize; i++) {
 			Citizen familyMember = AddCitizen(houseBlock);
+			familyMember.transform.position = (Random.Range(0, 2) == 0 ? leftCitizenSpawnPos : rightCitizenSpawnPos);
 			houseBlock.AddResident(familyMember);
 		}
 	}
