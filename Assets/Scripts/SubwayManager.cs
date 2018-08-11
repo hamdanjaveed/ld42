@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SubwayManager : BlockManager, IBlockHandler {
+	[SerializeField] GameObject pathControls;
+	[SerializeField] GameObject pathConfirmButton;
 	private List<Coordinate> currentPath = new List<Coordinate>();
 	private List<List<Coordinate>> paths = new List<List<Coordinate>>();
 
@@ -17,12 +19,18 @@ public class SubwayManager : BlockManager, IBlockHandler {
 			paths.Add(currentPath);
 			currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().confirmed = true);
 			currentPath.Clear();
+
+			pathConfirmButton.SetActive(false);
+			pathControls.SetActive(false);
 		}
 	}
 
 	public void CancelPath() {
 		currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().state = SubwayBlock.State.EMPTY);
 		currentPath.Clear();
+
+		pathConfirmButton.SetActive(false);
+		pathControls.SetActive(false);
 	}
 
 	public override void BlockClicked(GameObject go) {
@@ -33,6 +41,9 @@ public class SubwayManager : BlockManager, IBlockHandler {
 		} else {
 			if (currentPath.Count == 0) {
 				currentPath.Add(block.pos);
+
+				pathControls.SetActive(true);
+				pathConfirmButton.SetActive(false);
 			} else {
 				Block previousBlock = GetBlock(currentPath[currentPath.Count - 1]).GetComponent<Block>();
 				if (block.isInLineWith(previousBlock)) {
@@ -42,6 +53,7 @@ public class SubwayManager : BlockManager, IBlockHandler {
 						// Debug.Log("Path conflicts with previous path! " + ind);
 					} else {
 						newPath.ForEach(p => currentPath.Add(p));
+						pathConfirmButton.SetActive(true);
 					}
 				} else {
 					// Debug.Log("Path must be a straight line!");

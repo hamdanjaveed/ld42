@@ -413,7 +413,7 @@ GameObject:
   - component: {fileID: 325474835}
   - component: {fileID: 325474834}
   m_Layer: 5
-  m_Name: Cancel
+  m_Name: CancelPath
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -535,12 +535,12 @@ GameObject:
   - component: {fileID: 437191909}
   - component: {fileID: 437191908}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: PathControls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &437191907
 RectTransform:
   m_ObjectHideFlags: 0
@@ -744,12 +744,12 @@ GameObject:
   - component: {fileID: 1085492383}
   - component: {fileID: 1085492382}
   m_Layer: 5
-  m_Name: Confirm
+  m_Name: ConfirmPath
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1085492381
 RectTransform:
   m_ObjectHideFlags: 0
@@ -928,6 +928,8 @@ MonoBehaviour:
   data: {fileID: 11400000, guid: 804f853505d5b4f13bbd6457fc1bbcbe, type: 2}
   blockPrefab: {fileID: 1678372065602386, guid: 942ab5b55ab2048cdb6779e11715196e,
     type: 2}
+  pathControls: {fileID: 437191906}
+  pathConfirmButton: {fileID: 1085492380}
 --- !u!4 &1486064947
 Transform:
   m_ObjectHideFlags: 0
