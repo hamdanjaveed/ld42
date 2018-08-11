@@ -38,6 +38,14 @@ public class SubwayManager : BlockManager, IBlockHandler {
 		if (block.state != SubwayBlock.State.EMPTY) {
 			// Can't start path here
 			// Debug.Log("You can't do that!");
+			int i = currentPath.FindIndex(coord => coord == block.pos);
+			if (i != -1) {
+				currentPath.GetRange(i + 1, currentPath.Count - i - 1).ForEach(coord => {
+					GetBlock(coord).GetComponent<SubwayBlock>().state = SubwayBlock.State.EMPTY;
+				});
+
+				currentPath.RemoveRange(i + 1, currentPath.Count - i - 1);
+			}
 		} else {
 			if (currentPath.Count == 0) {
 				currentPath.Add(block.pos);
@@ -59,9 +67,9 @@ public class SubwayManager : BlockManager, IBlockHandler {
 					// Debug.Log("Path must be a straight line!");
 				}
 			}
-
-			UpdatePath();
 		}
+
+		UpdatePath();
 	}
 
 	public override void BlockHovered(GameObject go) {
