@@ -10,7 +10,6 @@ public abstract class BlockManager : MonoBehaviour, IBlockHandler {
 
 	// Use this for initialization
 	protected virtual void Start () {
-		int citySizePx = (data.numBlocks * data.blockSizePx) + ((data.numBlocks - 1) * data.gapSizePx);
 		Vector3 topLeftOffset = (Vector3.right + Vector3.down) * (data.PPU / 2.0f);
 		float cityBlockOffset = (data.blockSizePx + data.gapSizePx) / data.PPU;
 
