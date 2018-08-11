@@ -33,4 +33,14 @@
 	public static bool operator!=(Coordinate c1, Coordinate c2) {
 		return !(c1 == c2);
 	}
+
+	public override bool Equals(object obj) {
+		if (obj == null || this.GetType() != obj.GetType()) return false;
+		Coordinate c = (Coordinate) obj;
+		return c.x == x && c.y == y;
+	}
+
+	public override int GetHashCode() {
+		return x.GetHashCode() ^ y.GetHashCode();
+	}
 }

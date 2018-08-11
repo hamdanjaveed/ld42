@@ -19,6 +19,7 @@ public class SubwayBlock : Block {
 	}
 
 	public State state;
+	public bool confirmed;
 
 	[SerializeField] private Sprite cornerDownLeftSprite;
 	[SerializeField] private Sprite cornerLeftUpSprite;
@@ -38,6 +39,7 @@ public class SubwayBlock : Block {
 	void Start () {
 		spriteR = GetComponent<SpriteRenderer>();
 		state = State.EMPTY;
+		confirmed = false;
 	}
 
 	void Update () {
@@ -78,6 +80,12 @@ public class SubwayBlock : Block {
 			case State.VERTICAL:
 				spriteR.sprite = verticalSprite;
 				break;
+		}
+
+		if (state != State.EMPTY && !confirmed) {
+			spriteR.color = new Color(0.8f, 0.95f, 0.8f, 0.9f);
+		} else {
+			spriteR.color = Color.white;
 		}
 	}
 }

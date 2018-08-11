@@ -3,46 +3,52 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SubwayManager : BlockManager, IBlockHandler {
-	private bool isDrawingPath;
-	private Coordinate startPos;
-	private List<Coordinate> path = new List<Coordinate>();
+	private List<Coordinate> currentPath = new List<Coordinate>();
+	private List<List<Coordinate>> paths = new List<List<Coordinate>>();
 
 	protected override void Start() {
 		base.Start();
+	}
 
-		isDrawingPath = false;
+	public void CompletePath() {
+		if (currentPath.Count == 0) {
+			// Debug.Log("No path to complete!");
+		} else {
+			paths.Add(currentPath);
+			currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().confirmed = true);
+			currentPath.Clear();
+		}
+	}
+
+	public void CancelPath() {
+		currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().state = SubwayBlock.State.EMPTY);
+		currentPath.Clear();
 	}
 
 	public override void BlockClicked(GameObject go) {
 		SubwayBlock block = go.GetComponent<SubwayBlock>();
-		if (isDrawingPath) {
-			// End path
-			Coordinate endPos = block.pos;
+		if (block.state != SubwayBlock.State.EMPTY) {
+			// Can't start path here
+			// Debug.Log("You can't do that!");
 		} else {
-			// Start path
-			if (block.state != SubwayBlock.State.EMPTY) {
-				// Can't start path here
-				// Debug.Log("You can't do that!");
+			if (currentPath.Count == 0) {
+				currentPath.Add(block.pos);
 			} else {
-				if (path.Count == 0) {
-					path.Add(block.pos);
-				} else {
-					Block previousBlock = GetBlock(path[path.Count - 1]).GetComponent<Block>();
-					if (block.isInLineWith(previousBlock)) {
-						List<Coordinate> newPath = previousBlock.getPathToBlock(block);
-						int ind = newPath.FindIndex(p => GetBlock(p).GetComponent<SubwayBlock>().state != SubwayBlock.State.EMPTY);
-						if (ind != -1) {
-							// Debug.Log("Path conflicts with previous path! " + ind);
-						} else {
-							newPath.ForEach(p => path.Add(p));
-						}
+				Block previousBlock = GetBlock(currentPath[currentPath.Count - 1]).GetComponent<Block>();
+				if (block.isInLineWith(previousBlock)) {
+					List<Coordinate> newPath = previousBlock.getPathToBlock(block);
+					int ind = newPath.FindIndex(p => GetBlock(p).GetComponent<SubwayBlock>().state != SubwayBlock.State.EMPTY);
+					if (ind != -1) {
+						// Debug.Log("Path conflicts with previous path! " + ind);
 					} else {
-						// Debug.Log("Path must be a straight line!");
+						newPath.ForEach(p => currentPath.Add(p));
 					}
+				} else {
+					// Debug.Log("Path must be a straight line!");
 				}
-
-				UpdatePath();
 			}
+
+			UpdatePath();
 		}
 	}
 
@@ -52,25 +58,25 @@ public class SubwayManager : BlockManager, IBlockHandler {
 
 	private void UpdatePath() {
 		// string s = "";
-		// path.ForEach(p => s += p + " ");
-		// Debug.Log("Updating path with " + path.Count + " blocks: " + s);
-		if (path.Count == 1) {
-			GetBlock(path[0]).GetComponent<SubwayBlock>().state = SubwayBlock.State.NODE;
+		// currentPath.ForEach(p => s += p + " ");
+		// Debug.Log("Updating path with " + currentPath.Count + " blocks: " + s);
+		if (currentPath.Count == 1) {
+			GetBlock(currentPath[0]).GetComponent<SubwayBlock>().state = SubwayBlock.State.NODE;
 		} else {
 			// 0 or 2+ blocks
-			for (int i = 0; i < path.Count; i++) {
-				Block block = GetBlock(path[i]).GetComponent<Block>();
-				SubwayBlock subwayBlock = GetBlock(path[i]).GetComponent<SubwayBlock>();
-				if (i == 0 || i == path.Count - 1) {
+			for (int i = 0; i < currentPath.Count; i++) {
+				Block block = GetBlock(currentPath[i]).GetComponent<Block>();
+				SubwayBlock subwayBlock = GetBlock(currentPath[i]).GetComponent<SubwayBlock>();
+				if (i == 0 || i == currentPath.Count - 1) {
 					// Ends
 					SubwayBlock.Direction dir;
 					if (i == 0) {
 						// Beginning
-						Block nextBlock = GetBlock(path[i + 1]).GetComponent<Block>();
+						Block nextBlock = GetBlock(currentPath[i + 1]).GetComponent<Block>();
 						dir = block.getDirectionRelativeTo(nextBlock);
 					} else {
 						// Ending
-						Block previousBlock = GetBlock(path[i - 1]).GetComponent<Block>();
+						Block previousBlock = GetBlock(currentPath[i - 1]).GetComponent<Block>();
 						dir = block.getDirectionRelativeTo(previousBlock);
 					}
 
@@ -90,8 +96,8 @@ public class SubwayManager : BlockManager, IBlockHandler {
 					}
 				} else {
 					// Middle
-					Block previousBlock = GetBlock(path[i - 1]).GetComponent<Block>();
-					Block nextBlock = GetBlock(path[i + 1]).GetComponent<Block>();
+					Block previousBlock = GetBlock(currentPath[i - 1]).GetComponent<Block>();
+					Block nextBlock = GetBlock(currentPath[i + 1]).GetComponent<Block>();
 					SubwayBlock.Direction previousDir = block.getDirectionRelativeTo(previousBlock);
 					SubwayBlock.Direction nextDir = block.getDirectionRelativeTo(nextBlock);
 
