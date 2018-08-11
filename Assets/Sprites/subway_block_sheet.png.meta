@@ -101,8 +101,8 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -119,10 +119,10 @@ TextureImporter:
       name: subway_block_node_up
       rect:
         serializedVersion: 2
-        x: 40
+        x: 32
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -139,10 +139,10 @@ TextureImporter:
       name: subway_block_node_right
       rect:
         serializedVersion: 2
-        x: 60
+        x: 48
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -159,10 +159,10 @@ TextureImporter:
       name: subway_block_node_down
       rect:
         serializedVersion: 2
-        x: 80
+        x: 64
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -179,10 +179,10 @@ TextureImporter:
       name: subway_block_node_left
       rect:
         serializedVersion: 2
-        x: 100
+        x: 80
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -199,10 +199,10 @@ TextureImporter:
       name: subway_block_horizontal
       rect:
         serializedVersion: 2
-        x: 120
+        x: 96
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -219,10 +219,10 @@ TextureImporter:
       name: subway_block_vertical
       rect:
         serializedVersion: 2
-        x: 140
+        x: 112
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -239,10 +239,10 @@ TextureImporter:
       name: subway_block_node
       rect:
         serializedVersion: 2
-        x: 20
+        x: 16
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -259,12 +259,12 @@ TextureImporter:
       name: subway_block_corner_up_right
       rect:
         serializedVersion: 2
-        x: 160
+        x: 128
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -279,12 +279,12 @@ TextureImporter:
       name: subway_block_corner_right_down
       rect:
         serializedVersion: 2
-        x: 180
+        x: 144
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -299,12 +299,12 @@ TextureImporter:
       name: subway_block_corner_down_left
       rect:
         serializedVersion: 2
-        x: 200
+        x: 160
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -319,12 +319,12 @@ TextureImporter:
       name: subway_block_corner_left_up
       rect:
         serializedVersion: 2
-        x: 220
+        x: 176
         y: 0
-        width: 20
-        height: 20
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []

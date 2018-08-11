@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9078d1f8407324b80a876cd208e5cb6e, type: 3}
   m_Name: SubwayBlockData
   m_EditorClassIdentifier: 
-  numBlocks: 5
-  blockSizePx: 20
+  numBlocks: 10
+  blockSizePx: 16
   gapSizePx: 0
   PPU: 4

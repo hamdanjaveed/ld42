@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Block : MonoBehaviour {
 	public enum Direction {
@@ -28,6 +29,7 @@ public class Block : MonoBehaviour {
 				return Direction.LEFT;
 			}
 		} else {
+
 			if (System.Math.Sign(dy) > 0) {
 				return Direction.DOWN;
 			} else {
@@ -61,7 +63,9 @@ public class Block : MonoBehaviour {
 	}
 
 	void OnMouseDown() {
-		didMouseDown = true;
+		if (!EventSystem.current.IsPointerOverGameObject()) {
+			didMouseDown = true;
+		}
 	}
 
 	void OnMouseUp() {
