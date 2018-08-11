@@ -2,20 +2,34 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+struct Coordinate {
+	public int x;
+	public int y;
+
+	public Coordinate(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+
+	public override string ToString() {
+		return "(" + x + ", " + y + ")";
+	}
+}
+
 public class CityManager : MonoBehaviour {
-	private const int citySize = 10;
+	bool f = false;
+	private const int citySize = 5;
 	private const int cityBlockSize = 16;
 	private const float tileSize = 4.0f;
 
 	private const int roadSize = 4;
 
-	private const float blockChosenTimeThreshold = 5.0f; // Seconds between choosing a city block
+	private const float blockChosenTimeThreshold = 0.4f; // Seconds between choosing a city block
 
 	[SerializeField] private GameObject cityBlockPrefab;
 
-
 	private GameObject[][] cityBlocks;
-	private bool[][] chosen;
+	private List<Coordinate> availableBlocks = new List<Coordinate>(citySize * citySize);
 
 	private float timeSinceLastBlockChosen;
 
@@ -33,39 +47,44 @@ public class CityManager : MonoBehaviour {
 				cityBlock.transform.position += topLeftOffset + Vector3.right * (cityBlockOffset * x) + Vector3.down * (cityBlockOffset * y);
 				cityBlock.name = "City Block (" + x + ", " + y + ")";
 				cityBlocks[x][y] = cityBlock;
+
+				// Debug.Log(y + citySize * x);
+				availableBlocks.Add(new Coordinate(x, y));
 			}
 		}
-
+	Application.Quit();
 		timeSinceLastBlockChosen = Time.time;
 	}
 
 	void Update() {
-		if (Time.time - timeSinceLastBlockChosen > blockChosenTimeThreshold) {
-			ChooseRandomBlock();
-			timeSinceLastBlockChosen = Time.time;
+		if (availableBlocks.Count > 0) {
+			if (Time.time - timeSinceLastBlockChosen > blockChosenTimeThreshold) {
+				ChoosePairOfBlocks();
+				timeSinceLastBlockChosen = Time.time;
+			}
 		}
 	}
 
-	private void ChooseRandomBlock() {
-		int tries = 0;
-		int dist = 0;
-		int cbx1, cby1;
-		int cbx2, cby2;
-		do {
-			cbx1 = Random.Range(0, citySize);
-			cby1 = Random.Range(0, citySize);
-			cbx2 = Random.Range(0, citySize);
-			cby2 = Random.Range(0, citySize);
-			dist = manhattanDistance(cbx1, cby1, cbx2, cby2);
-			if (dist == 0) continue; // Same block
-			tries++;
-		} while (tries < 5 && dist < 5);
+	private void ChoosePairOfBlocks() {
+		int r = Random.Range(0, availableBlocks.Count - 1);
+		List<Coordinate> possible = availableBlocks.FindAll(coord => {
+			return manhattanDistance(availableBlocks[r], coord) > 3;
+		});
 
-		cityBlocks[cbx1][cby1].GetComponent<CityBlock>().Choose();
-		cityBlocks[cbx2][cby2].GetComponent<CityBlock>().Choose();
+		if (possible.Count == 0) {
+			// Debug.Log("Could not choose with coord: " + availableBlocks[r]);
+			availableBlocks.RemoveAt(r);
+		} else {
+			int r2 = Random.Range(0, possible.Count - 1);
+			cityBlocks[availableBlocks[r].x][availableBlocks[r].y].GetComponent<CityBlock>().Choose();
+			cityBlocks[availableBlocks[r2].x][availableBlocks[r2].y].GetComponent<CityBlock>().Choose();
+
+			availableBlocks.RemoveAt(r);
+			availableBlocks.RemoveAt(r2);
+		}
 	}
 
-	private int manhattanDistance(int x1, int y1, int x2, int y2) {
-		return System.Math.Abs(x1 - x2) + System.Math.Abs(y1 - y2);
+	private int manhattanDistance(Coordinate c1, Coordinate c2) {
+		return System.Math.Abs(c1.x - c2.x) + System.Math.Abs(c1.y - c2.y);
 	}
 }
