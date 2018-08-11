@@ -2,67 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-struct Coordinate {
-	public int x;
-	public int y;
+public class CityManager : BlockManager {
+	private const float blockChosenTimeThreshold = 5f; // Seconds between choosing a city block
 
-	public Coordinate(int x, int y) {
-		this.x = x;
-		this.y = y;
-	}
-
-	public override string ToString() {
-		return "(" + x + ", " + y + ")";
-	}
-}
-
-public class CityManager : MonoBehaviour {
-	bool f = false;
-	private const int citySize = 5;
-	private const int cityBlockSize = 16;
-	private const float tileSize = 4.0f;
-
-	private const int roadSize = 4;
-
-	private const float blockChosenTimeThreshold = 0.4f; // Seconds between choosing a city block
-
-	[SerializeField] private GameObject cityBlockPrefab;
-
-	private GameObject[][] cityBlocks;
-	private List<Coordinate> availableBlocks = new List<Coordinate>(citySize * citySize);
+	private List<Coordinate> availableBlocks;
 
 	private float timeSinceLastBlockChosen;
 
-	void Start () {
-		int citySizePx = (citySize * cityBlockSize) + ((citySize - 1) * roadSize);
-		Vector3 topLeftOffset = (Vector3.left + Vector3.up) * ((citySizePx / 2.0f / 4.0f) - (cityBlockSize / 2.0f / tileSize));
-		float cityBlockOffset = (cityBlockSize + roadSize) / tileSize;
+	protected override void Start() {
+		base.Start();
 
-		cityBlocks = new GameObject[citySize][];
-		for (int x = 0; x < citySize; x++) {
-			cityBlocks[x] = new GameObject[citySize];
-			for (int y = 0; y < citySize; y++) {
-				GameObject cityBlock = Instantiate(cityBlockPrefab, transform.position, transform.rotation) as GameObject;
-				cityBlock.transform.parent = transform;
-				cityBlock.transform.position += topLeftOffset + Vector3.right * (cityBlockOffset * x) + Vector3.down * (cityBlockOffset * y);
-				cityBlock.name = "City Block (" + x + ", " + y + ")";
-				cityBlocks[x][y] = cityBlock;
-
-				// Debug.Log(y + citySize * x);
+		availableBlocks = new List<Coordinate>(data.numBlocks * data.numBlocks);
+		for (int x = 0; x < data.numBlocks; x++) {
+			for (int y = 0; y < data.numBlocks; y++) {
 				availableBlocks.Add(new Coordinate(x, y));
 			}
 		}
-	Application.Quit();
-		timeSinceLastBlockChosen = Time.time;
+
+		timeSinceLastBlockChosen = 0;
 	}
 
 	void Update() {
 		if (availableBlocks.Count > 0) {
-			if (Time.time - timeSinceLastBlockChosen > blockChosenTimeThreshold) {
+			if (timeSinceLastBlockChosen > blockChosenTimeThreshold) {
 				ChoosePairOfBlocks();
-				timeSinceLastBlockChosen = Time.time;
+				timeSinceLastBlockChosen = 0;
 			}
 		}
+
+		timeSinceLastBlockChosen += Time.deltaTime;
 	}
 
 	private void ChoosePairOfBlocks() {
@@ -76,8 +44,9 @@ public class CityManager : MonoBehaviour {
 			availableBlocks.RemoveAt(r);
 		} else {
 			int r2 = Random.Range(0, possible.Count - 1);
-			cityBlocks[availableBlocks[r].x][availableBlocks[r].y].GetComponent<CityBlock>().Choose();
-			cityBlocks[availableBlocks[r2].x][availableBlocks[r2].y].GetComponent<CityBlock>().Choose();
+
+			GetBlock(availableBlocks[r]).GetComponent<CityBlock>().Choose();
+			GetBlock(availableBlocks[r2]).GetComponent<CityBlock>().Choose();
 
 			availableBlocks.RemoveAt(r);
 			availableBlocks.RemoveAt(r2);
