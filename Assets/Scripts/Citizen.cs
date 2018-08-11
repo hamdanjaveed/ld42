@@ -110,12 +110,6 @@ public class Citizen : MonoBehaviour {
 					idleTimer = 0;
 				}
 
-				if (stateTimer > 10.0f) {
-					state = State.GOING_TO_WORK;
-					stateTimer = 0;
-					idleTimer = 2;
-				}
-
 				break;
 			case State.GOING_TO_WORK:
 				transform.position = Vector3.MoveTowards(transform.position, work.transform.position, moveSpeed * Time.deltaTime);
@@ -161,16 +155,26 @@ public class Citizen : MonoBehaviour {
 
 				break;
 		}
-		// Debug.DrawLine(transform.position, home.transform.position, Color.blue);
-		// Debug.DrawLine(transform.position, work.transform.position, Color.red);
+	}
+
+	public void GoToWork() {
+		if (state == State.AT_HOME) {
+			state = State.GOING_TO_WORK;
+			stateTimer = 0;
+			idleTimer = 2;
+		}
+	}
+
+	public void GoHome() {
+		if (state == State.AT_WORK || state == State.GOING_TO_WORK) {
+			state = State.GOING_HOME;
+			stateTimer = 0;
+			idleTimer = 2;
+		}
 	}
 
 	public void SetHome(ResidentialCityBlock home) {
 		this.home = home;
-
-		// float dx = Random.Range(-0.5f, 0.5f);
-		// float dy = Random.Range(-0.5f, 0.5f);
-		// targetSpot = home.transform.position + Vector3.right * dx + Vector3.up * dy;
 	}
 
 	public void SetWork(IndustrialCityBlock work) {

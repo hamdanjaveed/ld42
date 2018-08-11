@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4815235593396872}
   - component: {fileID: 212633302578014868}
   - component: {fileID: 114075023945937684}
+  - component: {fileID: 114542796905870322}
   m_Layer: 0
   m_Name: Citizen
   m_TagString: Untagged
@@ -52,6 +53,52 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6524b01054c1429583f953e73156a03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &114542796905870322
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1841816193236236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 682c60029a2b8433c8e3666d348c1cdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pairs:
+  - gameEvent: {fileID: 11400000, guid: 05d2ea036ee514729a86bfbd4d240c3a, type: 2}
+    response:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 114075023945937684}
+          m_MethodName: GoToWork
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+      m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+  - gameEvent: {fileID: 11400000, guid: 8d6568981eb3c43d79a0afa7ad2df64a, type: 2}
+    response:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 114075023945937684}
+          m_MethodName: GoHome
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+      m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
 --- !u!212 &212633302578014868
 SpriteRenderer:
   m_ObjectHideFlags: 1
