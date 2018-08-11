@@ -9,6 +9,11 @@ TextureImporter:
     21300008: subway_block_node_left
     21300010: subway_block_horizontal
     21300012: subway_block_vertical
+    21300014: subway_block_node
+    21300016: subway_block_corner_up_right
+    21300018: subway_block_corner_right_down
+    21300020: subway_block_corner_down_left
+    21300022: subway_block_corner_left_up
   externalObjects: {}
   serializedVersion: 7
   mipmaps:
@@ -114,7 +119,7 @@ TextureImporter:
       name: subway_block_node_up
       rect:
         serializedVersion: 2
-        x: 20
+        x: 40
         y: 0
         width: 20
         height: 20
@@ -134,7 +139,7 @@ TextureImporter:
       name: subway_block_node_right
       rect:
         serializedVersion: 2
-        x: 40
+        x: 60
         y: 0
         width: 20
         height: 20
@@ -154,7 +159,7 @@ TextureImporter:
       name: subway_block_node_down
       rect:
         serializedVersion: 2
-        x: 60
+        x: 80
         y: 0
         width: 20
         height: 20
@@ -174,7 +179,7 @@ TextureImporter:
       name: subway_block_node_left
       rect:
         serializedVersion: 2
-        x: 80
+        x: 100
         y: 0
         width: 20
         height: 20
@@ -194,7 +199,7 @@ TextureImporter:
       name: subway_block_horizontal
       rect:
         serializedVersion: 2
-        x: 100
+        x: 120
         y: 0
         width: 20
         height: 20
@@ -214,7 +219,7 @@ TextureImporter:
       name: subway_block_vertical
       rect:
         serializedVersion: 2
-        x: 120
+        x: 140
         y: 0
         width: 20
         height: 20
@@ -226,6 +231,106 @@ TextureImporter:
       tessellationDetail: 0
       bones: []
       spriteID: fc95ce11aa34940e0a215e54dfe7a71e
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: subway_block_node
+      rect:
+        serializedVersion: 2
+        x: 20
+        y: 0
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 971b7a38d16b542e5b38a02332275040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: subway_block_corner_up_right
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 0
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9c0e2232d57e840478fd51988cb28785
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: subway_block_corner_right_down
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 0
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 13922038716404ceea54ffd06b2428a8
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: subway_block_corner_down_left
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 0
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf75abd8505654ceaa198db353bf4a6a
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: subway_block_corner_left_up
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 0
+        width: 20
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: af2173a575bd44496ab25aaf70d29acc
       vertices: []
       indices: 
       edges: []

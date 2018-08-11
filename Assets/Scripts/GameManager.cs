@@ -15,8 +15,8 @@ public class GameManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		currentGameView = GameView.CITY;
-		SwitchToCity();
+		currentGameView = GameView.SUBWAY;
+		SwitchToSubway();
 	}
 
 	void Update() {

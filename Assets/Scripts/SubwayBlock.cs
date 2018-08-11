@@ -3,17 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SubwayBlock : Block {
-	[SerializeField] private Sprite emptySprite;
-	[SerializeField] private Sprite horizontalSprite;
-	[SerializeField] private Sprite nodeDownSprite;
-	[SerializeField] private Sprite nodeLeftSprite;
-	[SerializeField] private Sprite nodeRightSprite;
-	[SerializeField] private Sprite nodeUpSprite;
-	[SerializeField] private Sprite verticalSprite;
-
 	public enum State {
+		CORNER_DOWN_LEFT,
+		CORNER_LEFT_UP,
+		CORNER_RIGHT_DOWN,
+		CORNER_UP_RIGHT,
 		EMPTY,
 		HORIZONTAL,
+		NODE,
 		NODE_DOWN,
 		NODE_LEFT,
 		NODE_RIGHT,
@@ -21,12 +18,22 @@ public class SubwayBlock : Block {
 		VERTICAL,
 	}
 
-	private SpriteRenderer spriteR;
-	private State state;
+	public State state;
 
-	public void SetState(State newState) {
-		state = newState;
-	}
+	[SerializeField] private Sprite cornerDownLeftSprite;
+	[SerializeField] private Sprite cornerLeftUpSprite;
+	[SerializeField] private Sprite cornerRightDownSprite;
+	[SerializeField] private Sprite cornerUpRightSprite;
+	[SerializeField] private Sprite emptySprite;
+	[SerializeField] private Sprite horizontalSprite;
+	[SerializeField] private Sprite nodeSprite;
+	[SerializeField] private Sprite nodeDownSprite;
+	[SerializeField] private Sprite nodeLeftSprite;
+	[SerializeField] private Sprite nodeRightSprite;
+	[SerializeField] private Sprite nodeUpSprite;
+	[SerializeField] private Sprite verticalSprite;
+
+	private SpriteRenderer spriteR;
 
 	void Start () {
 		spriteR = GetComponent<SpriteRenderer>();
@@ -35,11 +42,26 @@ public class SubwayBlock : Block {
 
 	void Update () {
 		switch (state) {
+			case State.CORNER_DOWN_LEFT:
+				spriteR.sprite = cornerDownLeftSprite;
+				break;
+			case State.CORNER_LEFT_UP:
+				spriteR.sprite = cornerLeftUpSprite;
+				break;
+			case State.CORNER_RIGHT_DOWN:
+				spriteR.sprite = cornerRightDownSprite;
+				break;
+			case State.CORNER_UP_RIGHT:
+				spriteR.sprite = cornerUpRightSprite;
+				break;
 			case State.EMPTY:
 				spriteR.sprite = emptySprite;
 				break;
 			case State.HORIZONTAL:
 				spriteR.sprite = horizontalSprite;
+				break;
+			case State.NODE:
+				spriteR.sprite = nodeSprite;
 				break;
 			case State.NODE_DOWN:
 				spriteR.sprite = nodeDownSprite;
