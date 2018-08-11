@@ -3,14 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Citizen : MonoBehaviour {
+	private enum State {
+		MOVING_IN,
+		AT_HOME,
+		GOING_TO_WORK,
+		AT_WORK,
+		GOING_HOME,
+	}
+
+	private State state;
+
 	private SpriteRenderer spriteR;
 	private string citizenName;
 
 	private ResidentialCityBlock home;
+	private Vector3 idlePos;
+
 	private IndustrialCityBlock work;
 
 	private float moveSpeed;
-	private Vector3 targetSpot;
+	private float stateTimer = 0;
+	private float idleTimer = 0;
 
 	private static Color[] skinTones = {
 		new Color(0.553f, 0.333f, 0.141f),
@@ -19,7 +32,6 @@ public class Citizen : MonoBehaviour {
 		new Color(0.945f, 0.761f, 0.490f),
 		new Color(1.000f, 0.859f, 0.675f),
 	};
-
 	private static Color[] pantsColors = {
 		new Color(0.102f, 0.737f, 0.612f),
 		new Color(0.180f, 0.800f, 0.443f),
@@ -62,17 +74,103 @@ public class Citizen : MonoBehaviour {
 	}
 
 	void Update() {
-		transform.position = Vector3.MoveTowards(transform.position, targetSpot, moveSpeed * Time.deltaTime);
-		Debug.DrawLine(transform.position, home.transform.position, Color.blue);
-		Debug.DrawLine(transform.position, work.transform.position, Color.red);
+		stateTimer += Time.deltaTime;
+		idleTimer += Time.deltaTime;
+
+		Coordinate homeCoordinate = home.GetComponent<Block>().pos;
+		Coordinate workCoordinate = work.GetComponent<Block>().pos;
+		switch (state) {
+			case State.MOVING_IN:
+				transform.position = Vector3.MoveTowards(transform.position, home.transform.position, moveSpeed * 5 * Time.deltaTime);
+				Debug.DrawLine(transform.position, home.transform.position, Color.red);
+
+				if (Util.manhattanDistance(GetCoordinate(), homeCoordinate) < 1) {
+					state = State.AT_HOME;
+
+					stateTimer = 0;
+					idleTimer = 2;
+					idlePos = GetRandomPosInCoordinate(homeCoordinate);
+				}
+
+				break;
+			case State.AT_HOME:
+				// for (int i = 0; i < 400; i++) {
+				// 	// home.GetComponent<Block>().pos
+				// 	Vector3 p = GetRandomPosInCoordinate(new Coordinate(4, 0));
+				// 	Debug.DrawLine(p + Vector3.up * 0.1f, p, Color.red);
+				// }
+
+				if (idleTimer > 2) {
+					transform.position = Vector3.MoveTowards(transform.position, idlePos, moveSpeed * 0.5f * Time.deltaTime);
+					Debug.DrawLine(transform.position, idlePos, Color.red);
+				}
+
+				if (Vector3.Distance(transform.position, idlePos) < 0.1f) {
+					idlePos = GetRandomPosInCoordinate(homeCoordinate);
+					idleTimer = 0;
+				}
+
+				if (stateTimer > 10.0f) {
+					state = State.GOING_TO_WORK;
+					stateTimer = 0;
+					idleTimer = 2;
+				}
+
+				break;
+			case State.GOING_TO_WORK:
+				transform.position = Vector3.MoveTowards(transform.position, work.transform.position, moveSpeed * Time.deltaTime);
+				Debug.DrawLine(transform.position, work.transform.position, Color.red);
+
+				if (Util.manhattanDistance(GetCoordinate(), workCoordinate) < 1) {
+					state = State.AT_WORK;
+					stateTimer = 0;
+					idleTimer = 2;
+					idlePos = GetRandomPosInCoordinate(workCoordinate);
+				}
+
+				break;
+			case State.AT_WORK:
+				if (idleTimer > 2) {
+					transform.position = Vector3.MoveTowards(transform.position, idlePos, moveSpeed * 0.5f * Time.deltaTime);
+					Debug.DrawLine(transform.position, idlePos, Color.red);
+				}
+
+				if (Vector3.Distance(transform.position, idlePos) < 0.1f) {
+					idlePos = GetRandomPosInCoordinate(workCoordinate);
+					idleTimer = 0;
+				}
+
+				if (stateTimer > 10.0f) {
+					state = State.GOING_HOME;
+					stateTimer = 0;
+					idleTimer = 2;
+				}
+
+				break;
+			case State.GOING_HOME:
+				transform.position = Vector3.MoveTowards(transform.position, home.transform.position, moveSpeed * Time.deltaTime);
+				Debug.DrawLine(transform.position, home.transform.position, Color.red);
+
+				if (Util.manhattanDistance(GetCoordinate(), homeCoordinate) < 1) {
+					state = State.AT_HOME;
+
+					stateTimer = 0;
+					idleTimer = 2;
+					idlePos = GetRandomPosInCoordinate(homeCoordinate);
+				}
+
+				break;
+		}
+		// Debug.DrawLine(transform.position, home.transform.position, Color.blue);
+		// Debug.DrawLine(transform.position, work.transform.position, Color.red);
 	}
 
 	public void SetHome(ResidentialCityBlock home) {
 		this.home = home;
 
-		float dx = Random.Range(-0.5f, 0.5f);
-		float dy = Random.Range(-0.5f, 0.5f);
-		targetSpot = home.transform.position + Vector3.right * dx + Vector3.up * dy;
+		// float dx = Random.Range(-0.5f, 0.5f);
+		// float dy = Random.Range(-0.5f, 0.5f);
+		// targetSpot = home.transform.position + Vector3.right * dx + Vector3.up * dy;
 	}
 
 	public void SetWork(IndustrialCityBlock work) {
@@ -85,6 +183,19 @@ public class Citizen : MonoBehaviour {
 
 	public override string ToString() {
 		return GetName();
+	}
+
+	private Coordinate GetCoordinate() {
+		return new Coordinate(Mathf.FloorToInt(transform.localPosition.x / 4.0f), Mathf.FloorToInt(transform.localPosition.y / -4.0f));
+	}
+
+	private Vector3 GetRandomPosInCoordinate(Coordinate c) {
+		Vector3 topLeft = new Vector3(-23, 23, 0);
+
+		float dx = Random.Range(0.5f, 3.5f);
+		float dy = Random.Range(0.5f, 3.5f);
+
+		return topLeft + new Vector3(c.x * 4.0f + dx, (c.y + 1) * -4.0f + dy, 0);
 	}
 
 	private string GenerateName() {
