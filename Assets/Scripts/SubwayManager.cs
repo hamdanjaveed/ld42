@@ -6,6 +6,7 @@ public class SubwayManager : BlockManager, IBlockHandler {
 	[SerializeField] GameObject pathControls;
 	[SerializeField] GameObject pathConfirmButton;
 	private List<Coordinate> currentPath = new List<Coordinate>();
+	private List<Coordinate> pathToEdit = new List<Coordinate>();
 	private List<List<Coordinate>> paths = new List<List<Coordinate>>();
 
 	protected override void Start() {
@@ -16,9 +17,10 @@ public class SubwayManager : BlockManager, IBlockHandler {
 		if (currentPath.Count == 0) {
 			// Debug.Log("No path to complete!");
 		} else {
-			paths.Add(currentPath);
+			paths.Add(new List<Coordinate>(currentPath));
 			currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().confirmed = true);
 			currentPath.Clear();
+			pathToEdit.Clear();
 
 			pathConfirmButton.SetActive(false);
 			pathControls.SetActive(false);
@@ -29,30 +31,52 @@ public class SubwayManager : BlockManager, IBlockHandler {
 		currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().state = SubwayBlock.State.EMPTY);
 		currentPath.Clear();
 
+		if (pathToEdit.Count > 0) {
+			currentPath = new List<Coordinate>(pathToEdit);
+			currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().confirmed = true);
+			UpdatePath();
+
+			paths.Add(new List<Coordinate>(currentPath));
+			currentPath.Clear();
+			pathToEdit.Clear();
+		}
+
 		pathConfirmButton.SetActive(false);
 		pathControls.SetActive(false);
 	}
 
 	public override void BlockClicked(GameObject go) {
 		SubwayBlock block = go.GetComponent<SubwayBlock>();
-		if (block.state != SubwayBlock.State.EMPTY) {
-			// Can't start path here
-			// Debug.Log("You can't do that!");
-			int i = currentPath.FindIndex(coord => coord == block.pos);
-			if (i != -1) {
-				currentPath.GetRange(i + 1, currentPath.Count - i - 1).ForEach(coord => {
-					GetBlock(coord).GetComponent<SubwayBlock>().state = SubwayBlock.State.EMPTY;
-				});
-
-				currentPath.RemoveRange(i + 1, currentPath.Count - i - 1);
-			}
-		} else {
-			if (currentPath.Count == 0) {
+		if (currentPath.Count == 0) {
+			// Not editing a current path
+			if (block.state == SubwayBlock.State.EMPTY) {
+				// Start a new path
 				currentPath.Add(block.pos);
 
 				pathControls.SetActive(true);
 				pathConfirmButton.SetActive(false);
 			} else {
+				// Edit an existing path
+
+				// Find which path we're editing
+				pathToEdit = paths.Find(path => path.Contains(block.pos));
+
+				if (pathToEdit.Count == 0) {
+					// Debug.Log("Couldn't find path");
+				} else {
+					currentPath = new List<Coordinate>(pathToEdit);
+					paths.Remove(pathToEdit);
+
+					currentPath.ForEach(coord => GetBlock(coord).GetComponent<SubwayBlock>().confirmed = false);
+
+					pathControls.SetActive(true);
+					pathConfirmButton.SetActive(true);
+				}
+			}
+		} else {
+			// Building a current path
+			if (block.state == SubwayBlock.State.EMPTY) {
+				// Continue building current path
 				Block previousBlock = GetBlock(currentPath[currentPath.Count - 1]).GetComponent<Block>();
 				if (block.isInLineWith(previousBlock)) {
 					List<Coordinate> newPath = previousBlock.getPathToBlock(block);
@@ -65,6 +89,18 @@ public class SubwayManager : BlockManager, IBlockHandler {
 					}
 				} else {
 					// Debug.Log("Path must be a straight line!");
+				}
+			} else {
+				// Truncate current path
+				int i = currentPath.FindIndex(coord => coord == block.pos);
+				if (i != -1) {
+					currentPath.GetRange(i + 1, currentPath.Count - i - 1).ForEach(coord => {
+						GetBlock(coord).GetComponent<SubwayBlock>().state = SubwayBlock.State.EMPTY;
+					});
+
+					currentPath.RemoveRange(i + 1, currentPath.Count - i - 1);
+
+					pathConfirmButton.SetActive(currentPath.Count > 1);
 				}
 			}
 		}
