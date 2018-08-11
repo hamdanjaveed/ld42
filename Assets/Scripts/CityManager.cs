@@ -3,29 +3,49 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CityManager : BlockManager {
-	private const float blockChosenTimeThreshold = 5f; // Seconds between choosing a city block
+	[SerializeField] GameObject industrialCityBlockPrefab;
+	[SerializeField] GameObject residentialCityBlockPrefab;
+	[SerializeField] GameObject citizenPrefab;
+	[SerializeField] GameObject citizenContainer;
 
-	private List<Coordinate> availableBlocks;
+	private const float blockChosenTimeThreshold = 30f; // Seconds between spawning a family
+
+	private List<Coordinate> unoccupiedIndustrialBlocks;
+	private List<Coordinate> unoccupiedResidentialBlocks;
+	private List<Coordinate> occupiedIndustrialBlocks;
+	private List<Coordinate> occupiedResidentialBlocks;
 
 	private float timeSinceLastBlockChosen;
 
 	protected override void Start() {
+		unoccupiedIndustrialBlocks = new List<Coordinate>();
+		unoccupiedResidentialBlocks = new List<Coordinate>();
+
 		base.Start();
 
-		availableBlocks = new List<Coordinate>(data.numBlocks * data.numBlocks);
 		for (int x = 0; x < data.numBlocks; x++) {
 			for (int y = 0; y < data.numBlocks; y++) {
-				availableBlocks.Add(new Coordinate(x, y));
+				if (y < data.numBlocks / 2) {
+					// Industrial
+					unoccupiedIndustrialBlocks.Add(new Coordinate(x, y));
+				} else {
+					// Residential
+					unoccupiedResidentialBlocks.Add(new Coordinate(x, y));
+				}
 			}
 		}
 
-		timeSinceLastBlockChosen = 0;
+		occupiedIndustrialBlocks = new List<Coordinate>();
+		occupiedResidentialBlocks = new List<Coordinate>();
+
+		timeSinceLastBlockChosen = blockChosenTimeThreshold - 2;
 	}
 
 	void Update() {
-		if (availableBlocks.Count > 0) {
+		if (unoccupiedResidentialBlocks.Count > 0) {
 			if (timeSinceLastBlockChosen > blockChosenTimeThreshold) {
-				ChoosePairOfBlocks();
+				// ChoosePairOfBlocks();
+				AddFamily();
 				timeSinceLastBlockChosen = 0;
 			}
 		}
@@ -41,24 +61,56 @@ public class CityManager : BlockManager {
 		// Debug.Log("Block clicked in city: " + go.GetComponent<Block>().pos);
 	}
 
-	private void ChoosePairOfBlocks() {
-		int r = Random.Range(0, availableBlocks.Count - 1);
-		List<Coordinate> possible = availableBlocks.FindAll(coord => {
-			return manhattanDistance(availableBlocks[r], coord) > 3;
-		});
-
-		if (possible.Count == 0) {
-			// Debug.Log("Could not choose with coord: " + availableBlocks[r]);
-			availableBlocks.RemoveAt(r);
+	protected override GameObject GetBlockPrefab(int x, int y) {
+		if (y < data.numBlocks / 2) {
+			unoccupiedIndustrialBlocks.Add(new Coordinate(x, y));
+			return industrialCityBlockPrefab;
 		} else {
-			int r2 = Random.Range(0, possible.Count - 1);
-
-			GetBlock(availableBlocks[r]).GetComponent<CityBlock>().Choose();
-			GetBlock(availableBlocks[r2]).GetComponent<CityBlock>().Choose();
-
-			availableBlocks.RemoveAt(r);
-			availableBlocks.RemoveAt(r2);
+			unoccupiedResidentialBlocks.Add(new Coordinate(x, y));
+			return residentialCityBlockPrefab;
 		}
+	}
+
+	private void AddFamily() {
+		int r = Random.Range(0, unoccupiedResidentialBlocks.Count - 1);
+		Coordinate houseCoord = unoccupiedResidentialBlocks[r];
+		unoccupiedResidentialBlocks.RemoveAt(r);
+		occupiedResidentialBlocks.Add(houseCoord);
+
+		ResidentialCityBlock houseBlock = GetBlock(houseCoord).GetComponent<ResidentialCityBlock>();
+		int familySize = Random.Range(1, 1);
+		for (int i = 0; i < familySize; i++) {
+			Citizen familyMember = AddCitizen(houseBlock);
+			houseBlock.AddResident(familyMember);
+		}
+	}
+
+	private Citizen AddCitizen(ResidentialCityBlock home) {
+		GameObject go = Instantiate(citizenPrefab);
+		go.transform.parent = citizenContainer.transform;
+		Citizen citizen = go.GetComponent<Citizen>();
+
+		citizen.SetHome(home);
+
+		Coordinate workCoord;
+		// If no work buildings exist or 25% chance
+		if (occupiedIndustrialBlocks.Count == 0 || Random.Range(0, 100) < 25) {
+			// Occupy new work building
+			int r = Random.Range(0, unoccupiedIndustrialBlocks.Count - 1);
+			workCoord = unoccupiedIndustrialBlocks[r];
+
+			unoccupiedIndustrialBlocks.RemoveAt(r);
+			occupiedIndustrialBlocks.Add(workCoord);
+		} else {
+			// Occupy existing work building
+			int r = Random.Range(0, occupiedIndustrialBlocks.Count - 1);
+			workCoord = occupiedIndustrialBlocks[r];
+		}
+
+		IndustrialCityBlock workBlock = GetBlock(workCoord).GetComponent<IndustrialCityBlock>();
+		citizen.SetWork(workBlock);
+
+		return citizen;
 	}
 
 	private int manhattanDistance(Coordinate c1, Coordinate c2) {

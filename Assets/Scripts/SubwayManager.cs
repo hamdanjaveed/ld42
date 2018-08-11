@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SubwayManager : BlockManager, IBlockHandler {
+	[SerializeField] GameObject subwayBlockPrefab;
 	[SerializeField] GameObject pathControls;
 	[SerializeField] GameObject pathConfirmButton;
 	private List<Coordinate> currentPath = new List<Coordinate>();
@@ -110,6 +111,10 @@ public class SubwayManager : BlockManager, IBlockHandler {
 
 	public override void BlockHovered(GameObject go) {
 		// Debug.Log("Block clicked in subway: " + go.GetComponent<Block>().pos);
+	}
+
+	protected override GameObject GetBlockPrefab(int x, int y) {
+		return subwayBlockPrefab;
 	}
 
 	private void UpdatePath() {

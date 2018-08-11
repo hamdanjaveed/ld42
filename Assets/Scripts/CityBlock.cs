@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CityBlock : Block {
+	public bool occupied;
+
 	private SpriteRenderer spriteR;
 
 	public void Choose() {
@@ -10,6 +12,7 @@ public class CityBlock : Block {
 	}
 
 	void Start() {
+		occupied = false;
 		spriteR = gameObject.GetComponent<SpriteRenderer>();
 	}
 

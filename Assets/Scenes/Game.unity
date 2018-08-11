@@ -756,8 +756,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data: {fileID: 11400000, guid: fbfd90fabd18c436694488f10c3b3275, type: 2}
-  blockPrefab: {fileID: 1850232847272578, guid: b42f9a03791ba4f52bf13c4fa549f94e,
+  industrialCityBlockPrefab: {fileID: 1092239489208330, guid: 8b1a251c5992f430489f74f0d8bb33d6,
     type: 2}
+  residentialCityBlockPrefab: {fileID: 1841532486638402, guid: 8774cbdd530fc4259b6cad3d32eff043,
+    type: 2}
+  citizenPrefab: {fileID: 1841816193236236, guid: 31991ba7b11b74c6e944e4af6fa7c1f0,
+    type: 2}
+  citizenContainer: {fileID: 1413101273}
 --- !u!4 &1202449970
 Transform:
   m_ObjectHideFlags: 0
@@ -767,8 +772,37 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 1413101274}
   m_Father: {fileID: 97913}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1413101273
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1413101274}
+  m_Layer: 0
+  m_Name: Citizens
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1413101274
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1413101273}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1202449970}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1486064945
@@ -799,7 +833,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data: {fileID: 11400000, guid: 804f853505d5b4f13bbd6457fc1bbcbe, type: 2}
-  blockPrefab: {fileID: 1678372065602386, guid: 942ab5b55ab2048cdb6779e11715196e,
+  subwayBlockPrefab: {fileID: 1678372065602386, guid: 942ab5b55ab2048cdb6779e11715196e,
     type: 2}
   pathControls: {fileID: 437191906}
   pathConfirmButton: {fileID: 1085492380}

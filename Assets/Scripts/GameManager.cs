@@ -23,8 +23,7 @@ public class GameManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		currentGameView = GameView.SUBWAY;
-		SwitchToSubway();
+		SwitchToCity();
 	}
 
 	void Update() {
@@ -37,21 +36,21 @@ public class GameManager : MonoBehaviour {
 		switch (currentGameView) {
 			case GameView.CITY:
 				SwitchToSubway();
-				currentGameView = GameView.SUBWAY;
 				break;
 			case GameView.SUBWAY:
 				SwitchToCity();
-				currentGameView = GameView.CITY;
 				break;
 		}
 	}
 
 	void SwitchToSubway() {
+		currentGameView = GameView.SUBWAY;
 		cityManager.SetActive(false);
 		subwayManager.SetActive(true);
 	}
 
 	void SwitchToCity() {
+		currentGameView = GameView.CITY;
 		cityManager.SetActive(true);
 		subwayManager.SetActive(false);
 	}
