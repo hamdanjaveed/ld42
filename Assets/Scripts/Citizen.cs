@@ -11,13 +11,14 @@ public class Citizen : MonoBehaviour {
 		GOING_HOME,
 	}
 
-	private State state;
+	private State state = State.MOVING_IN;
 
 	private SpriteRenderer spriteR;
 	private string citizenName;
 
 	private ResidentialCityBlock home;
 	private Vector3 idlePos;
+	private List<Vector3> walkingPath = new List<Vector3>();
 
 	private IndustrialCityBlock work;
 
@@ -77,34 +78,32 @@ public class Citizen : MonoBehaviour {
 		stateTimer += Time.deltaTime;
 		idleTimer += Time.deltaTime;
 
-		Coordinate homeCoordinate = home.GetComponent<Block>().pos;
-		Coordinate workCoordinate = work.GetComponent<Block>().pos;
 		switch (state) {
 			case State.MOVING_IN:
-				WalkTo(homeCoordinate, home.transform.position, () => {
+				WalkTo(home.pos, home.transform.position, () => {
 					state = State.AT_HOME;
-					BeginIdlingIn(homeCoordinate);
+					BeginIdlingIn(home.pos);
 					ResetTimers();
 				}, 5.0f);
 				break;
 			case State.AT_HOME:
-				IdleIn(homeCoordinate);
+				IdleIn(home.pos);
 				break;
 			case State.GOING_TO_WORK:
-				WalkTo(workCoordinate, work.transform.position, () => {
+				WalkTo(work.pos, work.transform.position, () => {
 					state = State.AT_WORK;
-					BeginIdlingIn(workCoordinate);
+					BeginIdlingIn(work.pos);
 					ResetTimers();
 				});
 				break;
 			case State.AT_WORK:
-				IdleIn(workCoordinate);
+				IdleIn(work.pos);
 				break;
 			case State.GOING_HOME:
-				WalkTo(homeCoordinate, home.transform.position, () => {
+				WalkTo(home.pos, home.transform.position, () => {
 					state = State.AT_HOME;
 					ResetTimers();
-					BeginIdlingIn(homeCoordinate);
+					BeginIdlingIn(home.pos);
 				});
 				break;
 		}
@@ -114,6 +113,7 @@ public class Citizen : MonoBehaviour {
 		if (state == State.AT_HOME) {
 			state = State.GOING_TO_WORK;
 			ResetTimers();
+			BeginWalk(work.pos);
 		}
 	}
 
@@ -121,11 +121,18 @@ public class Citizen : MonoBehaviour {
 		if (state == State.AT_WORK || state == State.GOING_TO_WORK) {
 			state = State.GOING_HOME;
 			ResetTimers();
+			BeginWalk(home.pos);
 		}
+	}
+
+	public void SetSpawn(Vector3 spawn) {
+		transform.position = spawn;
+		BeginWalk(home.pos);
 	}
 
 	public void SetHome(ResidentialCityBlock home) {
 		this.home = home;
+		BeginWalk(home.pos);
 	}
 
 	public void SetWork(IndustrialCityBlock work) {
@@ -145,15 +152,57 @@ public class Citizen : MonoBehaviour {
 		idleTimer = 2;
 	}
 
+	private void BeginWalk(Coordinate dest) {
+		Vector3 road = GetClosestRoadFrom(transform.position, GetCoordinate());
+		Vector3 intersection = GetClosestIntersectionFromRoad(road, GetCoordinate());
+
+		Vector3 endRoad = GetClosestRoadFrom(dest.GetCenterPos(), dest);
+		Vector3 endIntersection = GetClosestIntersectionFromRoad(endRoad, dest);
+
+		Vector3 delta = (endIntersection - intersection);
+		Vector3 xResolve = intersection + Vector3.right * delta.x;
+
+		walkingPath = new List<Vector3>() {
+			road,
+			intersection,
+			xResolve,
+			endIntersection,
+			dest.GetCenterPos(),
+		};
+
+		Debug.DrawLine(transform.position, road, Color.cyan);
+		Debug.DrawLine(road, intersection, Color.red);
+		Debug.DrawLine(dest.GetCenterPos(), endRoad, Color.cyan);
+		Debug.DrawLine(endIntersection, endRoad, Color.red);
+
+		Debug.DrawLine(intersection, xResolve, Color.white);
+		Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
+	}
+
 	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
 		WalkTo(targetCoord, targetPos, (c1, c2) => Util.manhattanDistance(c1, c2) < 1, reachedTarget, moveSpeedModifier);
 	}
 
 	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Coordinate, Coordinate, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
-		transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * moveSpeedModifier * Time.deltaTime);
-		Debug.DrawLine(transform.position, targetPos, Color.red);
+		if (didReachTarget(GetCoordinate(), targetCoord)) {
+			walkingPath.Clear();
+			reachedTarget();
+		}
 
-		if (didReachTarget(GetCoordinate(), targetCoord)) reachedTarget();
+		if (walkingPath.Count == 0) {
+			// Debug.Log("No where to walk and didn't reach destination!");
+		} else {
+			// Walk towards next point in path
+			transform.position = Vector3.MoveTowards(transform.position, walkingPath[0], moveSpeed * moveSpeedModifier * Time.deltaTime);
+
+			Debug.DrawLine(transform.position, walkingPath[0], Color.red);
+			for (int i = 0; i < walkingPath.Count - 1; i++) Debug.DrawLine(walkingPath[i], walkingPath[i + 1], Color.black);
+
+			if (Vector3.Distance(transform.position, walkingPath[0]) < 0.01f) {
+				// Remove point from walking path
+				walkingPath.RemoveAt(0);
+			}
+		}
 	}
 
 	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Vector3, Vector3, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
@@ -181,8 +230,34 @@ public class Citizen : MonoBehaviour {
 		// }
 	}
 
+	private Vector3 GetClosestRoadFrom(Vector3 start, Coordinate coord) {
+		Vector3 coordPos = coord.GetPos();
+
+		Vector3 vup = new Vector3(start.x, coordPos.y, 0);
+		Vector3 vdown = new Vector3(start.x, coordPos.y - 4.0f, 0);
+		Vector3 vleft = new Vector3(coordPos.x, start.y, 0);
+		Vector3 vright = new Vector3(coordPos.x + 4.0f, start.y, 0);
+
+		return Util.getClosestVector3(start, vup, vdown, vleft, vright);
+	}
+
+	private Vector3 GetClosestIntersectionFromRoad(Vector3 start, Coordinate coord) {
+		Vector3 coordPos = coord.GetPos();
+
+		Vector3 iTopLeft = coordPos;
+		Vector3 iTopRight = coordPos + Vector3.right * 4.0f;
+		Vector3 iBottomLeft = coordPos + Vector3.down * 4.0f;
+		Vector3 iBottomRight = coordPos + (Vector3.right + Vector3.down) * 4.0f;
+
+		return Util.getClosestVector3(start, iTopLeft, iTopRight, iBottomLeft, iBottomRight);
+	}
+
 	private Coordinate GetCoordinate() {
-		return new Coordinate(Mathf.FloorToInt(transform.localPosition.x / 4.0f), Mathf.FloorToInt(transform.localPosition.y / -4.0f));
+		return GetCoordinate(transform.localPosition);
+	}
+
+	private Coordinate GetCoordinate(Vector3 pos) {
+		return new Coordinate(Mathf.FloorToInt(pos.x / 4.0f), Mathf.FloorToInt(pos.y / -4.0f));
 	}
 
 	private Vector3 GetRandomPosInCoordinate(Coordinate c) {

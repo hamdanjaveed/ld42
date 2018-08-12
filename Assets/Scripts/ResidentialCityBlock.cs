@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ResidentialCityBlock : CityBlock {
-	private List<Citizen> residents;
+	public List<Citizen> residents;
 
 	void Start() {
 		residents = new List<Citizen>();

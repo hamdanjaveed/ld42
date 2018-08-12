@@ -1,4 +1,6 @@
-﻿public struct Coordinate {
+﻿using UnityEngine;
+
+public struct Coordinate {
 	public int x;
 	public int y;
 
@@ -20,6 +22,14 @@
 		} else {
 			return new Coordinate(0, System.Math.Sign(dy));
 		}
+	}
+
+	public Vector3 GetPos() {
+		return new Vector3(x * 4.0f - 23, y * -4.0f + 23, 0);
+	}
+
+	public Vector3 GetCenterPos() {
+		return GetPos() + (Vector3.right + Vector3.down) * 2.0f;
 	}
 
 	public static Coordinate operator+(Coordinate c1, Coordinate c2) {

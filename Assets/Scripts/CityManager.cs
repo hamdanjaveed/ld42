@@ -11,7 +11,9 @@ public class CityManager : BlockManager {
 	[SerializeField] Vector3 leftCitizenSpawnPos;
 	[SerializeField] Vector3 rightCitizenSpawnPos;
 
-	private const float blockChosenTimeThreshold = 5f; // Seconds between spawning a family
+	private const float blockChosenTimeThreshold = 0.1f; // Seconds between spawning a family
+	private const int familyMin = 2;
+	private const int familyMax = 5;
 
 	private List<Coordinate> unoccupiedIndustrialBlocks;
 	private List<Coordinate> unoccupiedResidentialBlocks;
@@ -26,17 +28,17 @@ public class CityManager : BlockManager {
 
 		base.Start();
 
-		for (int x = 0; x < data.numBlocks; x++) {
-			for (int y = 0; y < data.numBlocks; y++) {
-				if (y < data.numBlocks / 2) {
-					// Industrial
-					unoccupiedIndustrialBlocks.Add(new Coordinate(x, y));
-				} else {
-					// Residential
-					unoccupiedResidentialBlocks.Add(new Coordinate(x, y));
-				}
-			}
-		}
+		// for (int x = 0; x < data.numBlocks; x++) {
+		// 	for (int y = 0; y < data.numBlocks; y++) {
+		// 		if (y < data.numBlocks / 2) {
+		// 			// Industrial
+		// 			unoccupiedIndustrialBlocks.Add(new Coordinate(x, y));
+		// 		} else {
+		// 			// Residential
+		// 			// unoccupiedResidentialBlocks.Add(new Coordinate(x, y));
+		// 		}
+		// 	}
+		// }
 
 		occupiedIndustrialBlocks = new List<Coordinate>();
 		occupiedResidentialBlocks = new List<Coordinate>();
@@ -47,11 +49,17 @@ public class CityManager : BlockManager {
 	void Update() {
 		if (unoccupiedResidentialBlocks.Count > 0) {
 			if (timeSinceLastBlockChosen > blockChosenTimeThreshold) {
-				// ChoosePairOfBlocks();
 				AddFamily();
 				timeSinceLastBlockChosen = 0;
 			}
 		}
+
+		// int m = -1;
+		// for (int i = 0; i < occupiedResidentialBlocks.Count; i++) {
+		// 	int j = GetBlock(occupiedResidentialBlocks[i]).GetComponent<ResidentialCityBlock>().residents.Count;
+		// 	if (j > m) m = j;
+		// }
+		// Debug.Log(m);
 
 		timeSinceLastBlockChosen += Time.deltaTime;
 	}
@@ -77,14 +85,22 @@ public class CityManager : BlockManager {
 	private void AddFamily() {
 		int r = Random.Range(0, unoccupiedResidentialBlocks.Count - 1);
 		Coordinate houseCoord = unoccupiedResidentialBlocks[r];
-		unoccupiedResidentialBlocks.RemoveAt(r);
+		// Debug.Log("Chose " + houseCoord + " with index " + r + " and total " + unoccupiedResidentialBlocks.Count);
+		List<Coordinate> allFound = unoccupiedResidentialBlocks.FindAll(p => p == houseCoord);
+		// Debug.Log("Found " + allFound.Count + " copies");
+		unoccupiedResidentialBlocks.Remove(houseCoord);
+		// int ind = unoccupiedResidentialBlocks.FindIndex(p => p == houseCoord);
+		// if (ind != -1) {
+		// 	Debug.Log("This was duped: " + houseCoord + " at index " + ind + " with total " + unoccupiedResidentialBlocks.Count);
+		// 	Debug.Break();
+		// }
 		occupiedResidentialBlocks.Add(houseCoord);
 
 		ResidentialCityBlock houseBlock = GetBlock(houseCoord).GetComponent<ResidentialCityBlock>();
-		int familySize = Random.Range(2, 5);
+		int familySize = Random.Range(familyMin, familyMax);
 		for (int i = 0; i < familySize; i++) {
 			Citizen familyMember = AddCitizen(houseBlock);
-			familyMember.transform.position = (Random.Range(0, 2) == 0 ? leftCitizenSpawnPos : rightCitizenSpawnPos);
+			familyMember.SetSpawn(Random.Range(0, 2) == 0 ? leftCitizenSpawnPos : rightCitizenSpawnPos);
 			houseBlock.AddResident(familyMember);
 		}
 	}

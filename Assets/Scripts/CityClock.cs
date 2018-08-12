@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class CityClock : MonoBehaviour {
-	private const float oneCityHourInSeconds = 5;
+	private const float oneCityHourInSeconds = 3;
 
 	[SerializeField] GameEvent goToWork;
 	[SerializeField] GameEvent goHome;
