@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 
 public static class Util {
+	public static Vector3 topLeftScreenToWorldPoint() {
+		return Camera.main.ScreenToWorldPoint(new Vector3(0, Screen.height, 0));
+	}
+
 	public static int manhattanDistance(Coordinate c1, Coordinate c2) {
 		return System.Math.Abs(c1.x - c2.x) + System.Math.Abs(c1.y - c2.y);
 	}
