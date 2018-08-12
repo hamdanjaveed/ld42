@@ -72,6 +72,13 @@ public class CityManager : BlockManager {
 		// Debug.Log("Block clicked in city: " + go.GetComponent<Block>().pos);
 	}
 
+	public void UpdateSubwayPaths(List<Path> subwayPaths) {
+		Debug.Log("Got subway paths:");
+		subwayPaths.ForEach(p => {
+			Debug.Log(p);
+		});
+	}
+
 	protected override GameObject GetBlockPrefab(int x, int y) {
 		if (y < data.numBlocks / 2) {
 			unoccupiedIndustrialBlocks.Add(new Coordinate(x, y));

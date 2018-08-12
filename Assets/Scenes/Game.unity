@@ -944,6 +944,7 @@ MonoBehaviour:
     type: 2}
   pathControls: {fileID: 437191906}
   pathConfirmButton: {fileID: 1085492380}
+  cityManager: {fileID: 1202449969}
 --- !u!4 &1486064947
 Transform:
   m_ObjectHideFlags: 0
