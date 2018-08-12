@@ -4,7 +4,7 @@ using UnityEngine;
 
 struct Path {
 	private List<PathSegment> segments;
-	public readonly float weight;
+	public float weight;
 
 	public Path(List<PathSegment> segments) {
 		this.segments = segments;
@@ -16,6 +16,11 @@ struct Path {
 			segments.ForEach(ps => sum += ps.weight);
 			weight = sum;
 		}
+	}
+
+	public void AddSegment(PathSegment segment) {
+		segments.Add(segment);
+		weight += segment.weight;
 	}
 
 	public static Path Empty() {
@@ -147,7 +152,7 @@ public class Citizen : MonoBehaviour {
 
 		switch (state) {
 			case State.MOVING_IN:
-				WalkTo(home.pos, home.transform.position, () => {
+				WalkSmartlyTo(home.pos, home.transform.position, () => {
 					state = State.AT_HOME;
 					BeginIdlingIn(home.pos);
 					ResetTimers();
@@ -157,7 +162,7 @@ public class Citizen : MonoBehaviour {
 				IdleIn(home.pos);
 				break;
 			case State.GOING_TO_WORK:
-				WalkTo(work.pos, work.transform.position, () => {
+				WalkSmartlyTo(work.pos, work.transform.position, () => {
 					state = State.AT_WORK;
 					BeginIdlingIn(work.pos);
 					ResetTimers();
@@ -167,7 +172,7 @@ public class Citizen : MonoBehaviour {
 				IdleIn(work.pos);
 				break;
 			case State.GOING_HOME:
-				WalkTo(home.pos, home.transform.position, () => {
+				WalkSmartlyTo(home.pos, home.transform.position, () => {
 					state = State.AT_HOME;
 					ResetTimers();
 					BeginIdlingIn(home.pos);
@@ -180,7 +185,7 @@ public class Citizen : MonoBehaviour {
 		if (state == State.AT_HOME) {
 			state = State.GOING_TO_WORK;
 			ResetTimers();
-			BeginWalk(work.pos);
+			BeginWalk(work.pos.GetPos());
 		}
 	}
 
@@ -188,18 +193,18 @@ public class Citizen : MonoBehaviour {
 		if (state == State.AT_WORK || state == State.GOING_TO_WORK) {
 			state = State.GOING_HOME;
 			ResetTimers();
-			BeginWalk(home.pos);
+			BeginWalk(home.pos.GetPos());
 		}
 	}
 
 	public void SetSpawn(Vector3 spawn) {
 		transform.position = spawn;
-		BeginWalk(home.pos);
+		BeginWalk(home.pos.GetPos());
 	}
 
 	public void SetHome(ResidentialCityBlock home) {
 		this.home = home;
-		BeginWalk(home.pos);
+		BeginWalk(home.pos.GetPos());
 	}
 
 	public void SetWork(IndustrialCityBlock work) {
@@ -219,11 +224,11 @@ public class Citizen : MonoBehaviour {
 		idleTimer = 2;
 	}
 
-	private void BeginWalk(Coordinate dest) {
-		Vector3 road = GetClosestRoadFrom(transform.position, GetCoordinate());
-		Vector3 intersection = GetClosestIntersectionFromRoad(road, GetCoordinate());
+	private void BeginWalk(Vector3 dest) {
+		Vector3 road = GetClosestRoadFrom(transform.position, GetCoordinate().GetPos());
+		Vector3 intersection = GetClosestIntersectionFromRoad(road, GetCoordinate().GetPos());
 
-		Vector3 endRoad = GetClosestRoadFrom(dest.GetCenterPos(), dest);
+		Vector3 endRoad = GetClosestRoadFrom(dest, dest);
 		Vector3 endIntersection = GetClosestIntersectionFromRoad(endRoad, dest);
 
 		Vector3 delta = (endIntersection - intersection);
@@ -234,19 +239,25 @@ public class Citizen : MonoBehaviour {
 			new PathSegment(road, intersection, 0.5f),
 			new PathSegment(intersection, xResolve),
 			new PathSegment(xResolve, endIntersection),
-			new PathSegment(endIntersection, dest.GetCenterPos(), 0.5f),
+			new PathSegment(endIntersection, dest, 0.5f),
 		});
 
 		// Debug.DrawLine(transform.position, road, Color.cyan);
 		// Debug.DrawLine(road, intersection, Color.red);
-		// Debug.DrawLine(dest.GetCenterPos(), endRoad, Color.cyan);
+		// Debug.DrawLine(dest, endRoad, Color.cyan);
 		// Debug.DrawLine(endIntersection, endRoad, Color.red);
 
 		// Debug.DrawLine(intersection, xResolve, Color.white);
 		// Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
 	}
 
-	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
+	private Path GetBestPath(Vector3 start, Coordinate end) {
+		Path p = new Path();
+
+		return p;
+	}
+
+	private void WalkSmartlyTo(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
 		if (Util.manhattanDistance(GetCoordinate(), targetCoord) < 1) {
 			walkingPath = Path.Empty();
 			reachedTarget();
@@ -258,8 +269,8 @@ public class Citizen : MonoBehaviour {
 			// Walk towards next point in path
 			transform.position = Vector3.MoveTowards(transform.position, walkingPath.NextDestination(), moveSpeed * moveSpeedModifier * Time.deltaTime);
 
-			Debug.DrawLine(transform.position, walkingPath.NextDestination(), Color.red);
-			for (int i = 0; i < walkingPath.Count() - 1; i++) Debug.DrawLine(walkingPath.DestinationAt(i), walkingPath.DestinationAt(i + 1), Color.black);
+			Debug.DrawLine(transform.position, walkingPath.NextDestination(), new Color(1, 0, 0, 0.2f));
+			// for (int i = 0; i < walkingPath.Count() - 1; i++) Debug.DrawLine(walkingPath.DestinationAt(i), walkingPath.DestinationAt(i + 1), new Color(0, 0, 0, 0.2f));
 
 			if (Vector3.Distance(transform.position, walkingPath.NextDestination()) < 0.01f) {
 				// Remove point from walking path
@@ -268,9 +279,9 @@ public class Citizen : MonoBehaviour {
 		}
 	}
 
-	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Vector3, Vector3, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
+	private void WalkStraightTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Vector3, Vector3, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
 		transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * moveSpeedModifier * Time.deltaTime);
-		Debug.DrawLine(transform.position, targetPos, Color.red);
+		Debug.DrawLine(transform.position, targetPos, new Color(0, 1, 0, 0.6f));
 
 		if (didReachTarget(transform.position, targetPos)) reachedTarget();
 	}
@@ -282,7 +293,7 @@ public class Citizen : MonoBehaviour {
 
 	private void IdleIn(Coordinate coord) {
 		if (idleTimer > 2) {
-			WalkTo(coord, idlePos, (c1, c2) => Vector3.Distance(c1, c2) < 0.1f, () => {
+			WalkStraightTo(coord, idlePos, (c1, c2) => Vector3.Distance(c1, c2) < 0.1f, () => {
 				BeginIdlingIn(coord);
 			}, 0.5f);
 		}
@@ -293,24 +304,20 @@ public class Citizen : MonoBehaviour {
 		// }
 	}
 
-	private Vector3 GetClosestRoadFrom(Vector3 start, Coordinate coord) {
-		Vector3 coordPos = coord.GetPos();
-
-		Vector3 vup = new Vector3(start.x, coordPos.y, 0);
-		Vector3 vdown = new Vector3(start.x, coordPos.y - 4.0f, 0);
-		Vector3 vleft = new Vector3(coordPos.x, start.y, 0);
-		Vector3 vright = new Vector3(coordPos.x + 4.0f, start.y, 0);
+	private Vector3 GetClosestRoadFrom(Vector3 start, Vector3 end) {
+		Vector3 vup = new Vector3(start.x, end.y, 0);
+		Vector3 vdown = new Vector3(start.x, end.y - 4.0f, 0);
+		Vector3 vleft = new Vector3(end.x, start.y, 0);
+		Vector3 vright = new Vector3(end.x + 4.0f, start.y, 0);
 
 		return Util.getClosestVector3(start, vup, vdown, vleft, vright);
 	}
 
-	private Vector3 GetClosestIntersectionFromRoad(Vector3 start, Coordinate coord) {
-		Vector3 coordPos = coord.GetPos();
-
-		Vector3 iTopLeft = coordPos;
-		Vector3 iTopRight = coordPos + Vector3.right * 4.0f;
-		Vector3 iBottomLeft = coordPos + Vector3.down * 4.0f;
-		Vector3 iBottomRight = coordPos + (Vector3.right + Vector3.down) * 4.0f;
+	private Vector3 GetClosestIntersectionFromRoad(Vector3 start, Vector3 end) {
+		Vector3 iTopLeft = end;
+		Vector3 iTopRight = end + Vector3.right * 4.0f;
+		Vector3 iBottomLeft = end + Vector3.down * 4.0f;
+		Vector3 iBottomRight = end + (Vector3.right + Vector3.down) * 4.0f;
 
 		return Util.getClosestVector3(start, iTopLeft, iTopRight, iBottomLeft, iBottomRight);
 	}
