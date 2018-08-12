@@ -2,6 +2,73 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+struct Path {
+	private List<PathSegment> segments;
+	public readonly float weight;
+
+	public Path(List<PathSegment> segments) {
+		this.segments = segments;
+
+		if (segments.Count == 0) {
+			weight = float.MaxValue;
+		} else {
+			float sum = 0;
+			segments.ForEach(ps => sum += ps.weight);
+			weight = sum;
+		}
+	}
+
+	public static Path Empty() {
+		return new Path(new List<PathSegment>());
+	}
+
+	public bool IsEmpty() {
+		return segments.Count == 0;
+	}
+
+	public Vector3 NextDestination() {
+		return segments[0].end;
+	}
+
+	public Vector3 DestinationAt(int i) {
+		return segments[i].end;
+	}
+
+	public int Count() {
+		return segments.Count;
+	}
+
+	public void RemoveFirstSegment() {
+		segments.RemoveAt(0);
+	}
+
+	public static bool operator<(Path p1, Path p2) {
+		return p1.weight < p2.weight;
+	}
+
+	public static bool operator>(Path p1, Path p2) {
+		return p1.weight > p2.weight;
+	}
+}
+
+struct PathSegment {
+	public Vector3 begin;
+	public Vector3 end;
+	public float weight;
+
+	public PathSegment(Vector3 begin, Vector3 end, float weight) {
+		this.begin = begin;
+		this.end = end;
+		this.weight = weight;
+	}
+
+	public PathSegment(Vector3 begin, Vector3 end) {
+		this.begin = begin;
+		this.end = end;
+		this.weight = Util.manhattanDistance(begin, end);
+	}
+}
+
 public class Citizen : MonoBehaviour {
 	private enum State {
 		MOVING_IN,
@@ -18,7 +85,7 @@ public class Citizen : MonoBehaviour {
 
 	private ResidentialCityBlock home;
 	private Vector3 idlePos;
-	private List<Vector3> walkingPath = new List<Vector3>();
+	private Path walkingPath;
 
 	private IndustrialCityBlock work;
 
@@ -162,45 +229,41 @@ public class Citizen : MonoBehaviour {
 		Vector3 delta = (endIntersection - intersection);
 		Vector3 xResolve = intersection + Vector3.right * delta.x;
 
-		walkingPath = new List<Vector3>() {
-			road,
-			intersection,
-			xResolve,
-			endIntersection,
-			dest.GetCenterPos(),
-		};
+		walkingPath = new Path(new List<PathSegment>() {
+			new PathSegment(transform.position, road, 0.5f),
+			new PathSegment(road, intersection, 0.5f),
+			new PathSegment(intersection, xResolve),
+			new PathSegment(xResolve, endIntersection),
+			new PathSegment(endIntersection, dest.GetCenterPos(), 0.5f),
+		});
 
-		Debug.DrawLine(transform.position, road, Color.cyan);
-		Debug.DrawLine(road, intersection, Color.red);
-		Debug.DrawLine(dest.GetCenterPos(), endRoad, Color.cyan);
-		Debug.DrawLine(endIntersection, endRoad, Color.red);
+		// Debug.DrawLine(transform.position, road, Color.cyan);
+		// Debug.DrawLine(road, intersection, Color.red);
+		// Debug.DrawLine(dest.GetCenterPos(), endRoad, Color.cyan);
+		// Debug.DrawLine(endIntersection, endRoad, Color.red);
 
-		Debug.DrawLine(intersection, xResolve, Color.white);
-		Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
+		// Debug.DrawLine(intersection, xResolve, Color.white);
+		// Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
 	}
 
 	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
-		WalkTo(targetCoord, targetPos, (c1, c2) => Util.manhattanDistance(c1, c2) < 1, reachedTarget, moveSpeedModifier);
-	}
-
-	private void WalkTo(Coordinate targetCoord, Vector3 targetPos, System.Func<Coordinate, Coordinate, bool> didReachTarget, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
-		if (didReachTarget(GetCoordinate(), targetCoord)) {
-			walkingPath.Clear();
+		if (Util.manhattanDistance(GetCoordinate(), targetCoord) < 1) {
+			walkingPath = Path.Empty();
 			reachedTarget();
 		}
 
-		if (walkingPath.Count == 0) {
+		if (walkingPath.IsEmpty()) {
 			// Debug.Log("No where to walk and didn't reach destination!");
 		} else {
 			// Walk towards next point in path
-			transform.position = Vector3.MoveTowards(transform.position, walkingPath[0], moveSpeed * moveSpeedModifier * Time.deltaTime);
+			transform.position = Vector3.MoveTowards(transform.position, walkingPath.NextDestination(), moveSpeed * moveSpeedModifier * Time.deltaTime);
 
-			Debug.DrawLine(transform.position, walkingPath[0], Color.red);
-			for (int i = 0; i < walkingPath.Count - 1; i++) Debug.DrawLine(walkingPath[i], walkingPath[i + 1], Color.black);
+			Debug.DrawLine(transform.position, walkingPath.NextDestination(), Color.red);
+			for (int i = 0; i < walkingPath.Count() - 1; i++) Debug.DrawLine(walkingPath.DestinationAt(i), walkingPath.DestinationAt(i + 1), Color.black);
 
-			if (Vector3.Distance(transform.position, walkingPath[0]) < 0.01f) {
+			if (Vector3.Distance(transform.position, walkingPath.NextDestination()) < 0.01f) {
 				// Remove point from walking path
-				walkingPath.RemoveAt(0);
+				walkingPath.RemoveFirstSegment();
 			}
 		}
 	}
