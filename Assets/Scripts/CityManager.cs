@@ -11,9 +11,9 @@ public class CityManager : BlockManager {
 	[SerializeField] Vector3 leftCitizenSpawnPos;
 	[SerializeField] Vector3 rightCitizenSpawnPos;
 
-	private const float blockChosenTimeThreshold = 0.1f; // Seconds between spawning a family
-	private const int familyMin = 2;
-	private const int familyMax = 5;
+	private const float blockChosenTimeThreshold = 1000000f; // Seconds between spawning a family
+	private const int familyMin = 1;
+	private const int familyMax = 1;
 
 	private List<Coordinate> unoccupiedIndustrialBlocks;
 	private List<Coordinate> unoccupiedResidentialBlocks;
@@ -86,7 +86,7 @@ public class CityManager : BlockManager {
 		int r = Random.Range(0, unoccupiedResidentialBlocks.Count - 1);
 		Coordinate houseCoord = unoccupiedResidentialBlocks[r];
 		// Debug.Log("Chose " + houseCoord + " with index " + r + " and total " + unoccupiedResidentialBlocks.Count);
-		List<Coordinate> allFound = unoccupiedResidentialBlocks.FindAll(p => p == houseCoord);
+		// List<Coordinate> allFound = unoccupiedResidentialBlocks.FindAll(p => p == houseCoord);
 		// Debug.Log("Found " + allFound.Count + " copies");
 		unoccupiedResidentialBlocks.Remove(houseCoord);
 		// int ind = unoccupiedResidentialBlocks.FindIndex(p => p == houseCoord);

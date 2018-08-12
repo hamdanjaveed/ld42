@@ -54,6 +54,10 @@ struct Path {
 	public static bool operator>(Path p1, Path p2) {
 		return p1.weight > p2.weight;
 	}
+
+	public override string ToString() {
+		return "Path (" + weight + ")";
+	}
 }
 
 struct PathSegment {
@@ -70,7 +74,7 @@ struct PathSegment {
 	public PathSegment(Vector3 begin, Vector3 end) {
 		this.begin = begin;
 		this.end = end;
-		this.weight = Util.manhattanDistance(begin, end);
+		this.weight = Util.manhattanWeight(begin, end);
 	}
 }
 
@@ -152,7 +156,7 @@ public class Citizen : MonoBehaviour {
 
 		switch (state) {
 			case State.MOVING_IN:
-				WalkSmartlyTo(home.pos, home.transform.position, () => {
+				WalkAlongPath(home.pos, home.transform.position, () => {
 					state = State.AT_HOME;
 					BeginIdlingIn(home.pos);
 					ResetTimers();
@@ -162,7 +166,7 @@ public class Citizen : MonoBehaviour {
 				IdleIn(home.pos);
 				break;
 			case State.GOING_TO_WORK:
-				WalkSmartlyTo(work.pos, work.transform.position, () => {
+				WalkAlongPath(work.pos, work.transform.position, () => {
 					state = State.AT_WORK;
 					BeginIdlingIn(work.pos);
 					ResetTimers();
@@ -172,7 +176,7 @@ public class Citizen : MonoBehaviour {
 				IdleIn(work.pos);
 				break;
 			case State.GOING_HOME:
-				WalkSmartlyTo(home.pos, home.transform.position, () => {
+				WalkAlongPath(home.pos, home.transform.position, () => {
 					state = State.AT_HOME;
 					ResetTimers();
 					BeginIdlingIn(home.pos);
@@ -204,7 +208,6 @@ public class Citizen : MonoBehaviour {
 
 	public void SetHome(ResidentialCityBlock home) {
 		this.home = home;
-		BeginWalk(home.pos.GetPos());
 	}
 
 	public void SetWork(IndustrialCityBlock work) {
@@ -225,7 +228,16 @@ public class Citizen : MonoBehaviour {
 	}
 
 	private void BeginWalk(Vector3 dest) {
-		Vector3 road = GetClosestRoadFrom(transform.position, GetCoordinate().GetPos());
+		walkingPath = GetManhattanPath(transform.position, dest);
+	}
+
+	private Path GetBestPath(Vector3 start, Coordinate end) {
+		Path p = new Path();
+		return p;
+	}
+
+	private Path GetManhattanPath(Vector3 from, Vector3 dest) {
+		Vector3 road = GetClosestRoadFrom(from, GetCoordinate().GetPos());
 		Vector3 intersection = GetClosestIntersectionFromRoad(road, GetCoordinate().GetPos());
 
 		Vector3 endRoad = GetClosestRoadFrom(dest, dest);
@@ -234,30 +246,24 @@ public class Citizen : MonoBehaviour {
 		Vector3 delta = (endIntersection - intersection);
 		Vector3 xResolve = intersection + Vector3.right * delta.x;
 
-		walkingPath = new Path(new List<PathSegment>() {
-			new PathSegment(transform.position, road, 0.5f),
-			new PathSegment(road, intersection, 0.5f),
-			new PathSegment(intersection, xResolve),
-			new PathSegment(xResolve, endIntersection),
-			new PathSegment(endIntersection, dest, 0.5f),
-		});
-
-		// Debug.DrawLine(transform.position, road, Color.cyan);
+		// Debug.DrawLine(from, road, Color.cyan);
 		// Debug.DrawLine(road, intersection, Color.red);
 		// Debug.DrawLine(dest, endRoad, Color.cyan);
 		// Debug.DrawLine(endIntersection, endRoad, Color.red);
 
 		// Debug.DrawLine(intersection, xResolve, Color.white);
 		// Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
+
+		return new Path(new List<PathSegment>() {
+			new PathSegment(from, road, 0.5f),
+			new PathSegment(road, intersection, 0.5f),
+			new PathSegment(intersection, xResolve),
+			new PathSegment(xResolve, endIntersection),
+			new PathSegment(endIntersection, dest, 0.5f),
+		});
 	}
 
-	private Path GetBestPath(Vector3 start, Coordinate end) {
-		Path p = new Path();
-
-		return p;
-	}
-
-	private void WalkSmartlyTo(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
+	private void WalkAlongPath(Coordinate targetCoord, Vector3 targetPos, System.Action reachedTarget, float moveSpeedModifier = 1.0f) {
 		if (Util.manhattanDistance(GetCoordinate(), targetCoord) < 1) {
 			walkingPath = Path.Empty();
 			reachedTarget();
