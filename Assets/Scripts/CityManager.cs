@@ -8,12 +8,9 @@ public class CityManager : BlockManager {
 	[SerializeField] GameObject citizenPrefab;
 	[SerializeField] GameObject citizenContainer;
 
-	[SerializeField] Vector3 leftCitizenSpawnPos;
-	[SerializeField] Vector3 rightCitizenSpawnPos;
-
-	private const float blockChosenTimeThreshold = 1000000f; // Seconds between spawning a family
-	private const int familyMin = 1;
-	private const int familyMax = 1;
+	private const float blockChosenTimeThreshold = 0.1f; // Seconds between spawning a family
+	private const int familyMin = 2;
+	private const int familyMax = 5;
 
 	private List<Coordinate> unoccupiedIndustrialBlocks;
 	private List<Coordinate> unoccupiedResidentialBlocks;
@@ -27,18 +24,6 @@ public class CityManager : BlockManager {
 		unoccupiedResidentialBlocks = new List<Coordinate>();
 
 		base.Start();
-
-		// for (int x = 0; x < data.numBlocks; x++) {
-		// 	for (int y = 0; y < data.numBlocks; y++) {
-		// 		if (y < data.numBlocks / 2) {
-		// 			// Industrial
-		// 			unoccupiedIndustrialBlocks.Add(new Coordinate(x, y));
-		// 		} else {
-		// 			// Residential
-		// 			// unoccupiedResidentialBlocks.Add(new Coordinate(x, y));
-		// 		}
-		// 	}
-		// }
 
 		occupiedIndustrialBlocks = new List<Coordinate>();
 		occupiedResidentialBlocks = new List<Coordinate>();
@@ -61,6 +46,12 @@ public class CityManager : BlockManager {
 		// }
 		// Debug.Log(m);
 
+		// for (int i = 0; i < 400; i++) {
+		// 	// Vector3 d = GenerateSpawnPos();
+		// 	// Vector3 d = GetRandomPosInCoord(new Coordinate(3, 5));
+		// 	Debug.DrawLine(d, d + Vector3.up, Color.red);
+		// }
+
 		timeSinceLastBlockChosen += Time.deltaTime;
 	}
 
@@ -70,6 +61,47 @@ public class CityManager : BlockManager {
 
 	public override void BlockHovered(GameObject go) {
 		// Debug.Log("Block clicked in city: " + go.GetComponent<Block>().pos);
+	}
+
+	public override Path GetManhattanPath(Vector3 fromPos, Coordinate destCoord) {
+		Vector3 toPos = GetLocalCenterPosForCoord(destCoord);
+		Vector3 topLeftOfStartCoord = GetLocalPosForCoord(GetCoordForLocalPos(fromPos));
+		Vector3 topLeftOfDestCoord = GetLocalPosForCoord(destCoord);
+		// Debug.Log("Top left dest coord: " + topLeftOfDestCoord + " for coord " + destCoord);
+
+		Vector3 road = GetClosestRoad(fromPos, topLeftOfStartCoord);
+		Vector3 intersection = GetClosestIntersectionFromRoad(road, topLeftOfStartCoord);
+
+		Vector3 endRoad = GetClosestRoad(toPos, topLeftOfDestCoord);
+		Vector3 endIntersection = GetClosestIntersectionFromRoad(endRoad, topLeftOfDestCoord);
+
+		// Debug.Log("Starting intersection: " + intersection);
+		// Debug.Log("Ending intersection  : " + endIntersection);
+
+		Vector3 delta = (endIntersection - intersection);
+		// Debug.Log("Delta                : " + delta);
+		Vector3 xResolve = intersection + Vector3.right * delta.x;
+
+		// Vector3 ddd = Util.topLeftScreenToWorldPoint();
+		// Debug.DrawLine(ddd + fromPos, ddd + road, Color.cyan);
+		// Debug.DrawLine(ddd + road, ddd + intersection, Color.red);
+		// Debug.DrawLine(ddd + toPos, ddd + endRoad, Color.cyan);
+		// Debug.DrawLine(ddd + endIntersection, ddd + endRoad, Color.red);
+
+		// Debug.DrawLine(intersection, xResolve, Color.white);
+		// Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
+
+		Path p = new Path(new List<PathSegment>() {
+			new PathSegment(fromPos, road, 0.5f, 			"Nearest road        "),
+			new PathSegment(road, intersection, 0.5f, 		"Nearest intersection"),
+			new PathSegment(intersection, xResolve, 		"X delta             "),
+			new PathSegment(xResolve, endIntersection, 		"Y delta             "),
+			new PathSegment(endIntersection, toPos, 0.5f, 	"Destination         "),
+		});
+
+		// Debug.Log(p);
+
+		return p;
 	}
 
 	public void UpdateSubwayPaths(List<Path> subwayPaths) {
@@ -92,32 +124,25 @@ public class CityManager : BlockManager {
 	private void AddFamily() {
 		int r = Random.Range(0, unoccupiedResidentialBlocks.Count - 1);
 		Coordinate houseCoord = unoccupiedResidentialBlocks[r];
-		// Debug.Log("Chose " + houseCoord + " with index " + r + " and total " + unoccupiedResidentialBlocks.Count);
-		// List<Coordinate> allFound = unoccupiedResidentialBlocks.FindAll(p => p == houseCoord);
-		// Debug.Log("Found " + allFound.Count + " copies");
+		ResidentialCityBlock houseBlock = GetBlock(houseCoord).GetComponent<ResidentialCityBlock>();
+
 		unoccupiedResidentialBlocks.Remove(houseCoord);
-		// int ind = unoccupiedResidentialBlocks.FindIndex(p => p == houseCoord);
-		// if (ind != -1) {
-		// 	Debug.Log("This was duped: " + houseCoord + " at index " + ind + " with total " + unoccupiedResidentialBlocks.Count);
-		// 	Debug.Break();
-		// }
 		occupiedResidentialBlocks.Add(houseCoord);
 
-		ResidentialCityBlock houseBlock = GetBlock(houseCoord).GetComponent<ResidentialCityBlock>();
 		int familySize = Random.Range(familyMin, familyMax);
 		for (int i = 0; i < familySize; i++) {
 			Citizen familyMember = AddCitizen(houseBlock);
-			familyMember.SetSpawn(Random.Range(0, 2) == 0 ? leftCitizenSpawnPos : rightCitizenSpawnPos);
+			familyMember.SetSpawn(GenerateSpawnPos());
 			houseBlock.AddResident(familyMember);
 		}
 	}
 
 	private Citizen AddCitizen(ResidentialCityBlock home) {
-		GameObject go = Instantiate(citizenPrefab);
-		go.transform.parent = citizenContainer.transform;
+		GameObject go = Instantiate(citizenPrefab, citizenContainer.transform);
 		Citizen citizen = go.GetComponent<Citizen>();
 
 		citizen.SetHome(home);
+		citizen.SetPathPlanner(this);
 
 		Coordinate workCoord;
 		// If no work buildings exist or 25% chance
@@ -138,5 +163,34 @@ public class CityManager : BlockManager {
 		citizen.SetWork(workBlock);
 
 		return citizen;
+	}
+
+	private Vector3 GenerateSpawnPos() {
+		bool left = Random.Range(0, 2) == 0;
+		int y = Random.Range(-1, -data.numBlocks);
+
+		if (left) {
+			return new Vector3(-data.halfBlockSizeUnit, y * data.totalBlockSizeUnit, 0);
+		} else {
+			return new Vector3(data.totalSizeUnit + data.halfBlockSizeUnit, y * data.totalBlockSizeUnit, 0);
+		}
+	}
+
+	private Vector3 GetClosestRoad(Vector3 startLocalPos, Vector3 topLeftOfStartCoord) {
+		Vector3 vup = new Vector3(startLocalPos.x, topLeftOfStartCoord.y, 0);
+		Vector3 vdown = new Vector3(startLocalPos.x, topLeftOfStartCoord.y - data.totalBlockSizeUnit, 0);
+		Vector3 vleft = new Vector3(topLeftOfStartCoord.x, startLocalPos.y, 0);
+		Vector3 vright = new Vector3(topLeftOfStartCoord.x + data.totalBlockSizeUnit, startLocalPos.y, 0);
+
+		return Util.getClosestVector3(startLocalPos, vup, vdown, vleft, vright);
+	}
+
+	private Vector3 GetClosestIntersectionFromRoad(Vector3 startLocalPos, Vector3 topLeftOfStartCoord) {
+		Vector3 iTopLeft = topLeftOfStartCoord;
+		Vector3 iTopRight = topLeftOfStartCoord + Vector3.right * data.totalBlockSizeUnit;
+		Vector3 iBottomLeft = topLeftOfStartCoord + Vector3.down * data.totalBlockSizeUnit;
+		Vector3 iBottomRight = topLeftOfStartCoord + (Vector3.right + Vector3.down) * data.totalBlockSizeUnit;
+
+		return Util.getClosestVector3(startLocalPos, iTopLeft, iTopRight, iBottomLeft, iBottomRight);
 	}
 }

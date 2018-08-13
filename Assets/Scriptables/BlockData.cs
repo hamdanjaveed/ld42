@@ -13,6 +13,12 @@ public class BlockData : ScriptableObject {
 		}
 	}
 
+	public float halfBlockSizePx {
+		get {
+			return totalBlockSizePx / 2.0f;
+		}
+	}
+
 	public float totalBlockSizeUnit {
 		get {
 			return totalBlockSizePx / PPU;
@@ -21,7 +27,7 @@ public class BlockData : ScriptableObject {
 
 	public float halfBlockSizeUnit {
 		get {
-			return totalBlockSizeUnit / 2.0f;
+			return halfBlockSizePx / PPU;
 		}
 	}
 
@@ -40,6 +46,18 @@ public class BlockData : ScriptableObject {
 	public float halfTotalSizeUnit {
 		get {
 			return totalSizeUnit / 2.0f;
+		}
+	}
+
+	public float gapSizeUnit {
+		get {
+			return gapSizePx / PPU;
+		}
+	}
+
+	public float halfGapSizeUnit {
+		get {
+			return gapSizeUnit / 2.0f;
 		}
 	}
 }

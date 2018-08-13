@@ -24,14 +24,6 @@ public struct Coordinate {
 		}
 	}
 
-	public Vector3 GetPos() {
-		return new Vector3(x * 4.0f - 23, y * -4.0f + 23, 0);
-	}
-
-	public Vector3 GetCenterPos() {
-		return GetPos() + (Vector3.right + Vector3.down) * 2.0f;
-	}
-
 	public static Coordinate operator+(Coordinate c1, Coordinate c2) {
 		return new Coordinate(c1.x + c2.x, c1.y + c2.y);
 	}

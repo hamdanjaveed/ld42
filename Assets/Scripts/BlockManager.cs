@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class BlockManager : MonoBehaviour, IBlockHandler {
+public abstract class BlockManager : MonoBehaviour, IBlockHandler, IPathPlanner {
 	[SerializeField] protected BlockData data;
 
 	private GameObject[,] blocks;
@@ -41,8 +41,36 @@ public abstract class BlockManager : MonoBehaviour, IBlockHandler {
 		return blocks[x, y];
 	}
 
+	protected Vector3 GetLocalPosForCoord(Coordinate c) {
+		return new Vector3(c.x * data.totalBlockSizeUnit, -c.y * data.totalBlockSizeUnit, 0);
+	}
+
+	protected Vector3 GetLocalCenterPosForCoord(Coordinate c) {
+		Vector3 localPos = GetLocalPosForCoord(c);
+		return new Vector3(localPos.x + data.halfBlockSizeUnit, localPos.y - data.halfBlockSizeUnit, 0);
+	}
+
+	protected Coordinate GetCoordForLocalPos(Vector3 p) {
+		return new Coordinate(Mathf.FloorToInt(p.x / data.totalBlockSizeUnit), Mathf.FloorToInt(-p.y / data.totalBlockSizeUnit));
+	}
+
 	protected abstract GameObject GetBlockPrefab(int x, int y);
 
 	public abstract void BlockClicked(GameObject go);
 	public abstract void BlockHovered(GameObject go);
+
+	public abstract Path GetManhattanPath(Vector3 fromLocalPos, Coordinate destCoord);
+
+	public Vector3 GetRandomPosInCoord(Coordinate coord) {
+		Vector3 topLeft = GetLocalPosForCoord(coord);
+
+		float dx = Random.Range(data.halfGapSizeUnit, data.totalBlockSizeUnit - data.halfGapSizeUnit);
+		float dy = Random.Range(data.halfGapSizeUnit, data.totalBlockSizeUnit - data.halfGapSizeUnit);
+
+		return new Vector3(topLeft.x + dx, topLeft.y - dy, 0);
+	}
+
+	public float GetManhattanDistanceToCoord(Vector3 fromLocalPos, Coordinate destCoord) {
+		return Util.manhattanDistance(GetCoordForLocalPos(fromLocalPos), destCoord);
+	}
 }

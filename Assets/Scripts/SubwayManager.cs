@@ -30,8 +30,6 @@ public class SubwayManager : BlockManager, IBlockHandler {
 
 			pathConfirmButton.SetActive(false);
 			pathControls.SetActive(false);
-
-			cityManager.UpdateSubwayPaths(GetSubwayPaths());
 		}
 	}
 
@@ -120,6 +118,10 @@ public class SubwayManager : BlockManager, IBlockHandler {
 		// Debug.Log("Block clicked in subway: " + go.GetComponent<Block>().pos);
 	}
 
+	public override Path GetManhattanPath(Vector3 fromLocalPos, Coordinate destCoord) {
+		return Path.Empty();
+	}
+
 	protected override GameObject GetBlockPrefab(int x, int y) {
 		return subwayBlockPrefab;
 	}
@@ -188,23 +190,5 @@ public class SubwayManager : BlockManager, IBlockHandler {
 				}
 			}
 		}
-	}
-
-	private List<Path> GetSubwayPaths() {
-		List<Path> subwayPaths = new List<Path>();
-
-		paths.ForEach(p => {
-			Path sp = Path.Empty();
-
-			for (int i = 0; i < p.Count - 1; i++) {
-				PathSegment segment = new PathSegment(p[i].GetCenterPos(), p[i + 1].GetCenterPos());
-				segment.weight *= subwayWeightModifier;
-				sp.AddSegment(segment);
-			}
-
-			subwayPaths.Add(sp);
-		});
-
-		return subwayPaths;
 	}
 }

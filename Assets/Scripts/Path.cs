@@ -2,6 +2,31 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public struct PathSegment {
+	public Vector3 begin;
+	public Vector3 end;
+	public float weight;
+	public string name;
+
+	public PathSegment(Vector3 begin, Vector3 end, float weight, string name = "Segment") {
+		this.begin = begin;
+		this.end = end;
+		this.weight = weight;
+		this.name = name;
+	}
+
+	public PathSegment(Vector3 begin, Vector3 end, string name = "Segment") {
+		this.begin = begin;
+		this.end = end;
+		this.weight = Util.manhattanWeight(begin, end);
+		this.name = name;
+	}
+
+	public override string ToString() {
+		return name + " " + begin + " => " + end;
+	}
+}
+
 public struct Path {
 	private List<PathSegment> segments;
 	public float weight;
@@ -33,6 +58,10 @@ public struct Path {
 		return segments.Count == 0;
 	}
 
+	public Vector3 Beginning() {
+		return segments[0].begin;
+	}
+
 	public Vector3 NextDestination() {
 		return segments[0].end;
 	}
@@ -58,30 +87,8 @@ public struct Path {
 	}
 
 	public override string ToString() {
-		string desc = "Path (" + weight + "):";
-		segments.ForEach(s => desc += "\n\t- " + s);
+		string desc = "Path (" + segments.Count + ": " + weight + "):";
+		segments.ForEach(s => desc += ("\n\t- " + s));
 		return desc;
-	}
-}
-
-public struct PathSegment {
-	public Vector3 begin;
-	public Vector3 end;
-	public float weight;
-
-	public PathSegment(Vector3 begin, Vector3 end, float weight) {
-		this.begin = begin;
-		this.end = end;
-		this.weight = weight;
-	}
-
-	public PathSegment(Vector3 begin, Vector3 end) {
-		this.begin = begin;
-		this.end = end;
-		this.weight = Util.manhattanWeight(begin, end);
-	}
-
-	public override string ToString() {
-		return begin + " => " + end;
 	}
 }
