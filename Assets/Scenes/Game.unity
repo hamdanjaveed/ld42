@@ -854,8 +854,7 @@ MonoBehaviour:
   citizenPrefab: {fileID: 1841816193236236, guid: 31991ba7b11b74c6e944e4af6fa7c1f0,
     type: 2}
   citizenContainer: {fileID: 1413101273}
-  leftCitizenSpawnPos: {x: -24, y: -1, z: 0}
-  rightCitizenSpawnPos: {x: 18, y: -13, z: 0}
+  cityData: {fileID: 11400000, guid: b4338d457745a47f5872d0212990f971, type: 2}
 --- !u!4 &1202449970
 Transform:
   m_ObjectHideFlags: 0
