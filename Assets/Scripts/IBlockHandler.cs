@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public interface IBlockHandler {
     void BlockClicked(GameObject block);

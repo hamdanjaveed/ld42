@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public interface IPathPlanner {
     Path GetManhattanPath(Vector3 fromLocalPos, Coordinate destCoord);

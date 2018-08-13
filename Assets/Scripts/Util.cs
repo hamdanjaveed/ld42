@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public static class Util {
     public static Vector3 topLeftScreenToWorldPoint() {

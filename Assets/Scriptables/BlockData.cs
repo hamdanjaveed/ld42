@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "BlockData", menuName = "Data/Block")]
 public class BlockData : ScriptableObject {
