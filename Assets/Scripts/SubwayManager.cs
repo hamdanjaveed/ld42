@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SubwayManager : BlockManager, IBlockHandler {
-    private const float subwayWeightModifier = 0.5f;
+    private const float subwayWeightModifier = 0.2f;
 
     [SerializeField] GameObject subwayBlockPrefab;
     [SerializeField] GameObject pathControls;
@@ -31,6 +31,8 @@ public class SubwayManager : BlockManager, IBlockHandler {
             pathConfirmButton.SetActive(false);
             pathControls.SetActive(false);
         }
+
+        cityManager.UpdateSubwayPaths(GetSubwayPaths());
     }
 
     public void CancelPath() {
@@ -190,5 +192,23 @@ public class SubwayManager : BlockManager, IBlockHandler {
                 }
             }
         }
+    }
+
+    private List<Path> GetSubwayPaths() {
+        List<Path> subwayPaths = new List<Path>();
+
+        paths.ForEach(p => {
+            Path sp = Path.Empty();
+
+            for (int i = 0; i < p.Count - 1; i++) {
+                PathSegment segment = new PathSegment(GetLocalCenterPosForCoord(p[i]), GetLocalCenterPosForCoord(p[i + 1]), "Subway");
+                segment.weight *= subwayWeightModifier;
+                sp.AddSegment(segment);
+            }
+
+            subwayPaths.Add(sp);
+        });
+
+        return subwayPaths;
     }
 }

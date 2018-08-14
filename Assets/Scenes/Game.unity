@@ -880,6 +880,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1c33f0c1066049819a012c4054b9f31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cityData: {fileID: 11400000, guid: b4338d457745a47f5872d0212990f971, type: 2}
   goToWork: {fileID: 11400000, guid: 05d2ea036ee514729a86bfbd4d240c3a, type: 2}
   goHome: {fileID: 11400000, guid: 8d6568981eb3c43d79a0afa7ad2df64a, type: 2}
   timeLabel: {fileID: 363625579}
@@ -1050,7 +1051,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1659689187
 Transform:
   m_ObjectHideFlags: 0

@@ -14,3 +14,4 @@ MonoBehaviour:
   familyMin: 1
   familyMax: 1
   famiilySpawnTime: 10000
+  secondsPerHour: 100000

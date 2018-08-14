@@ -54,6 +54,10 @@ public abstract class BlockManager : MonoBehaviour, IBlockHandler, IPathPlanner 
         return new Coordinate(Mathf.FloorToInt(p.x / data.totalBlockSizeUnit), Mathf.FloorToInt(-p.y / data.totalBlockSizeUnit));
     }
 
+    protected bool IsValidCoord(Coordinate c) {
+        return c.x >= 0 && c.x < data.numBlocks && c.y >= 0 && c.y < data.numBlocks;
+    }
+
     protected abstract GameObject GetBlockPrefab(int x, int y);
 
     public abstract void BlockClicked(GameObject go);

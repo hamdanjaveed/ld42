@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 public class CityManager : BlockManager {
     [SerializeField] GameObject industrialCityBlockPrefab;
     [SerializeField] GameObject residentialCityBlockPrefab;
     [SerializeField] GameObject citizenPrefab;
     [SerializeField] GameObject citizenContainer;
-
     [SerializeField] CityData cityData;
 
     private List<Coordinate> unoccupiedIndustrialBlocks;
@@ -16,6 +16,10 @@ public class CityManager : BlockManager {
     private List<Coordinate> occupiedResidentialBlocks;
 
     private float timeSinceLastBlockChosen;
+
+    private Coordinate[,] closestSubway;
+    private bool[,] visited;
+    private Dictionary<Coordinate, Path> subwayPaths;
 
     protected override void Start() {
         unoccupiedIndustrialBlocks = new List<Coordinate>();
@@ -27,6 +31,8 @@ public class CityManager : BlockManager {
         occupiedResidentialBlocks = new List<Coordinate>();
 
         timeSinceLastBlockChosen = cityData.famiilySpawnTime;
+
+        ResetSubwayGrid();
     }
 
     void Update() {
@@ -36,19 +42,6 @@ public class CityManager : BlockManager {
                 timeSinceLastBlockChosen = 0;
             }
         }
-
-        // int m = -1;
-        // for (int i = 0; i < occupiedResidentialBlocks.Count; i++) {
-        //  int j = GetBlock(occupiedResidentialBlocks[i]).GetComponent<ResidentialCityBlock>().residents.Count;
-        //  if (j > m) m = j;
-        // }
-        // Debug.Log(m);
-
-        // for (int i = 0; i < 400; i++) {
-        //  // Vector3 d = GenerateSpawnPos();
-        //  // Vector3 d = GetRandomPosInCoord(new Coordinate(3, 5));
-        //  Debug.DrawLine(d, d + Vector3.up, Color.red);
-        // }
 
         timeSinceLastBlockChosen += Time.deltaTime;
     }
@@ -61,11 +54,10 @@ public class CityManager : BlockManager {
         // Debug.Log("Block clicked in city: " + go.GetComponent<Block>().pos);
     }
 
-    public override Path GetManhattanPath(Vector3 fromPos, Coordinate destCoord) {
+    private Path mPath(Vector3 fromPos, Coordinate destCoord) {
         Vector3 toPos = GetLocalCenterPosForCoord(destCoord);
         Vector3 topLeftOfStartCoord = GetLocalPosForCoord(GetCoordForLocalPos(fromPos));
         Vector3 topLeftOfDestCoord = GetLocalPosForCoord(destCoord);
-        // Debug.Log("Top left dest coord: " + topLeftOfDestCoord + " for coord " + destCoord);
 
         Vector3 road = GetClosestRoad(fromPos, topLeftOfStartCoord);
         Vector3 intersection = GetClosestIntersectionFromRoad(road, topLeftOfStartCoord);
@@ -73,11 +65,7 @@ public class CityManager : BlockManager {
         Vector3 endRoad = GetClosestRoad(toPos, topLeftOfDestCoord);
         Vector3 endIntersection = GetClosestIntersectionFromRoad(endRoad, topLeftOfDestCoord);
 
-        // Debug.Log("Starting intersection: " + intersection);
-        // Debug.Log("Ending intersection  : " + endIntersection);
-
         Vector3 delta = (endIntersection - intersection);
-        // Debug.Log("Delta                : " + delta);
         Vector3 xResolve = intersection + Vector3.right * delta.x;
 
         // Vector3 ddd = Util.topLeftScreenToWorldPoint();
@@ -90,11 +78,11 @@ public class CityManager : BlockManager {
         // Debug.DrawLine(xResolve, xResolve + Vector3.up * delta.y, Color.white);
 
         Path p = new Path(new List<PathSegment>() {
-            new PathSegment(fromPos, road, 0.5f,            "Nearest road        "),
-            new PathSegment(road, intersection, 0.5f,       "Nearest intersection"),
-            new PathSegment(intersection, xResolve,         "X delta             "),
-            new PathSegment(xResolve, endIntersection,      "Y delta             "),
-            new PathSegment(endIntersection, toPos, 0.5f,   "Destination         "),
+            new PathSegment(fromPos, road, Vector3.Distance(fromPos, road) / data.PPU, "To road"),
+            new PathSegment(road, intersection, Vector3.Distance(road, intersection) / data.PPU, "To intersection"),
+            new PathSegment(intersection, xResolve, "x resolve"),
+            new PathSegment(xResolve, endIntersection, "y resolve"),
+            new PathSegment(endIntersection, toPos, Vector3.Distance(endIntersection, toPos) / data.PPU, "Destination"),
         });
 
         // Debug.Log(p);
@@ -102,11 +90,83 @@ public class CityManager : BlockManager {
         return p;
     }
 
+    public override Path GetManhattanPath(Vector3 fromPos, Coordinate destCoord) {
+        Path walkingPath = mPath(fromPos, destCoord);
+
+        Coordinate fromCoord = GetCoordForLocalPos(fromPos);
+        if (!IsValidCoord(fromCoord) || subwayPaths.Count == 0) return walkingPath;
+
+        Coordinate closestSubwayCoord = closestSubway[fromCoord.x, fromCoord.y];
+        Path subwayPath = mPath(fromPos, closestSubwayCoord);
+        subwayPath += subwayPaths[closestSubwayCoord];
+        subwayPath += mPath(subwayPaths[closestSubwayCoord].Ending(), destCoord);
+
+        for (int i = 0; i < walkingPath.Count() - 1; i++) {
+            Debug.DrawLine(walkingPath.DestinationAt(i) + Util.topLeftScreenToWorldPoint(), walkingPath.DestinationAt(i + 1) + Util.topLeftScreenToWorldPoint(), (i == 0) ? Color.red : Color.red);
+        }
+        for (int i = 0; i < subwayPath.Count() - 1; i++) {
+            Debug.DrawLine(subwayPath.DestinationAt(i) + Util.topLeftScreenToWorldPoint(), subwayPath.DestinationAt(i + 1) + Util.topLeftScreenToWorldPoint(), (i == 0) ? Color.green : new Color(0, 1, 0, 1.0f));
+        }
+
+        if (walkingPath.weight < subwayPath.weight) {
+            Debug.Log("Walking to work (" + walkingPath.weight + " < " + subwayPath.weight + ")");
+            Debug.Log(walkingPath);
+            Debug.Log(subwayPath);
+            Debug.Break();
+            return walkingPath;
+        } else {
+            Debug.Log("Taking the subway at " + closestSubwayCoord + " to work (" + subwayPath.weight + " < " + walkingPath.weight + ")");
+            Debug.Break();
+            return subwayPath;
+        }
+    }
+
     public void UpdateSubwayPaths(List<Path> subwayPaths) {
-        Debug.Log("Got subway paths:");
+        // Debug.Log("Got subway paths:");
+        // subwayPaths.ForEach(p => {
+        //     Debug.Log(p);
+        // });
+
+        ResetSubwayGrid();
+
+        Queue<Coordinate> q = new Queue<Coordinate>();
         subwayPaths.ForEach(p => {
-            Debug.Log(p);
+            Coordinate c = GetCoordForLocalPos(p.Beginning());
+            closestSubway[c.x, c.y] = c;
+            this.subwayPaths[c] = p;
+            visited[c.x, c.y] = true;
+            q.Enqueue(c);
         });
+
+        while (q.Count > 0) {
+            Coordinate c = q.Dequeue();
+            List<Coordinate> ns = new List<Coordinate>();
+
+            if (c.y - 1 >= 0) { ns.Add(new Coordinate(c.x, c.y - 1)); }             // Up
+            if (c.y + 1 < data.numBlocks) { ns.Add(new Coordinate(c.x, c.y + 1)); } // Down
+            if (c.x - 1 >= 0) { ns.Add(new Coordinate(c.x - 1, c.y)); }             // Left
+            if (c.x + 1 < data.numBlocks) { ns.Add(new Coordinate(c.x + 1, c.y)); } // Right
+
+            ns.ForEach(nc => {
+                if (!visited[nc.x, nc.y]) {
+                    closestSubway[nc.x, nc.y] = closestSubway[c.x, c.y];
+                    visited[nc.x, nc.y] = true;
+                    q.Enqueue(nc);
+                }
+            });
+        }
+    }
+
+    void OnDrawGizmosSelected() {
+        if (!Application.isPlaying) return;
+
+        for (int x = 0; x < data.numBlocks; x++) {
+            for (int y = 0; y < data.numBlocks; y++) {
+                Vector3 pos = GetLocalPosForCoord(new Coordinate(x, y));
+                pos -= Vector3.left * Util.topLeftScreenToWorldPoint().x - Vector3.up * 23;
+                Handles.Label(pos, closestSubway[x, y].ToString());
+            }
+        }
     }
 
     protected override GameObject GetBlockPrefab(int x, int y) {
@@ -117,6 +177,12 @@ public class CityManager : BlockManager {
             unoccupiedResidentialBlocks.Add(new Coordinate(x, y));
             return residentialCityBlockPrefab;
         }
+    }
+
+    private void ResetSubwayGrid() {
+        closestSubway = new Coordinate[data.numBlocks, data.numBlocks];
+        visited = new bool[data.numBlocks, data.numBlocks];
+        subwayPaths = new Dictionary<Coordinate, Path>();
     }
 
     private void AddFamily() {

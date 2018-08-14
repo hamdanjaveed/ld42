@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class CityClock : MonoBehaviour {
-    private const float oneCityHourInSeconds = 3;
-
+    [SerializeField] CityData cityData;
     [SerializeField] GameEvent goToWork;
     [SerializeField] GameEvent goHome;
 
@@ -23,7 +22,7 @@ public class CityClock : MonoBehaviour {
 
     void Update () {
         timer += Time.deltaTime;
-        if (timer >= oneCityHourInSeconds) {
+        if (timer >= cityData.secondsPerHour) {
             timer = 0;
 
             // Increment hour

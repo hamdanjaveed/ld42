@@ -23,7 +23,7 @@ public struct PathSegment {
     }
 
     public override string ToString() {
-        return name + " " + begin + " => " + end;
+        return name + " " + begin + " => " + end + " [" + weight + "]";
     }
 }
 
@@ -43,6 +43,11 @@ public struct Path {
         }
     }
 
+    public Path(Path p) {
+        this.segments = p.segments;
+        this.weight = p.weight;
+    }
+
     public void AddSegment(PathSegment segment) {
         if (segments.Count == 0) weight = 0;
 
@@ -55,6 +60,7 @@ public struct Path {
     }
 
     public bool IsEmpty() {
+        if (segments == null) return true;
         return segments.Count == 0;
     }
 
@@ -68,6 +74,10 @@ public struct Path {
 
     public Vector3 DestinationAt(int i) {
         return segments[i].end;
+    }
+
+    public Vector3 Ending() {
+        return segments[segments.Count - 1].end;
     }
 
     public int Count() {
@@ -84,6 +94,12 @@ public struct Path {
 
     public static bool operator>(Path p1, Path p2) {
         return p1.weight > p2.weight;
+    }
+
+    public static Path operator+(Path p1, Path p2) {
+        Path p3 = new Path(p1);
+        p2.segments.ForEach(s => p3.AddSegment(s));
+        return p3;
     }
 
     public override string ToString() {

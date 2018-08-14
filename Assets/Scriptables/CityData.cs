@@ -6,4 +6,6 @@ public class CityData : ScriptableObject {
     public int familyMax = 5;
 
     public float famiilySpawnTime = 1f;
+
+    public float secondsPerHour = 0.5f;
 }
